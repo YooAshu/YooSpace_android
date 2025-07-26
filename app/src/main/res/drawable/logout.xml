@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+android:width="56dp"
+android:height="56dp"
+android:viewportWidth="800"
+android:viewportHeight="800">
+<path
+    android:strokeColor="#FF000000"
+    android:strokeWidth="66.67"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M500 100H233.33c-17.68 0-34.64 7.02-47.14 19.53-12.5 12.5-19.52 29.46-19.52 47.14v466.66c0 17.68 7.02 34.64 19.52 47.14S215.65 700 233.33 700H500m133.33-300L500 266.67M633.33 400L500 533.33M633.33 400H300"/>
+</vector>
