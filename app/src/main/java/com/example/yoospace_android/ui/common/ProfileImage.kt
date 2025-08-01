@@ -1,4 +1,4 @@
-package com.example.yoospace_android.ui.components
+package com.example.yoospace_android.ui.common
 
 import android.util.Log
 import androidx.compose.foundation.layout.size

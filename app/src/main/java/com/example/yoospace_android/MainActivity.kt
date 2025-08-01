@@ -18,7 +18,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.navigation.AuthNavGraph
 import com.example.yoospace_android.navigation.MainNavGraph
-import com.example.yoospace_android.ui.components.BottomNav
 import com.example.yoospace_android.ui.theme.YooSpace_androidTheme
 
 class MainActivity : ComponentActivity() {

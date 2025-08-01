@@ -1,8 +1,6 @@
-package com.example.yoospace_android.ui.components
+package com.example.yoospace_android.ui.common
 
-import android.R.attr.contentDescription
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,12 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +35,6 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.yoospace_android.R
 import com.example.yoospace_android.data.model.Post
-import java.nio.file.WatchEvent
 
 
 @Composable
@@ -49,9 +43,13 @@ fun Post(
     modifier: Modifier,
     onPostClick: (String) -> Unit,
     onProfileClick: (String) -> Unit,
+    onLikeClick: (String, Boolean) -> Unit
+
 ) {
-    var isLiked by remember { mutableStateOf(false) }
+    var isLiked by remember { mutableStateOf(post.isLiked) }
     var noOfLike by remember { mutableIntStateOf(post.no_of_like) }
+//    var isLiked = post.isLiked
+//    var noOfLike = post.no_of_like
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -160,9 +158,10 @@ fun Post(
                             }
                         }
                         .clickable {
+                            onLikeClick(post._id,isLiked)
                             isLiked = !isLiked
                             noOfLike += if (isLiked) 1 else -1
-                            // Handle like action here, e.g., update the post's like count
+
                         },
                     tint = Color.Unspecified
                 )

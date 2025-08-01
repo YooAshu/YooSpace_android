@@ -59,4 +59,32 @@ class PostViewModel: ViewModel(){
             }
         }
     }
+    var errorPostLike by mutableStateOf<String?>(null)
+
+    fun likePost(postId: String, function: () -> Unit={}) {
+        viewModelScope.launch {
+            try {
+                postRepository.likePost(postId)
+                errorPostLike = null
+//                function()
+                // Optionally, you can update the post state to reflect the new like count
+            } catch (e: Exception) {
+                // Handle the exception, e.g., log it or show a message to the user
+                errorPostLike = "Failed to like post: ${e.localizedMessage}"
+            }
+        }
+    }
+    fun unlikePost(postId: String, function: () -> Unit={}) {
+        viewModelScope.launch {
+            try {
+                postRepository.unlikePost(postId)
+                errorPostLike = null
+//                function()
+                // Optionally, you can update the post state to reflect the new like count
+            } catch (e: Exception) {
+                // Handle the exception, e.g., log it or show a message to the user
+                errorPostLike = "Failed to unlike post: ${e.localizedMessage}"
+            }
+        }
+    }
 }

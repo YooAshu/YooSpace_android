@@ -12,6 +12,7 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -38,6 +39,13 @@ interface ApiService {
         @Body request: RegisterRequest
     ): RegisterResponse
 
+//    dynamic user route
+
+    @GET("/api/users/profile/{userId}")
+    suspend fun getUserProfile(
+        @Path("userId") userId: String
+    ): CurrentUserResponse
+
 //    posts-route
 
     @GET("/api/posts/currentUser")
@@ -58,16 +66,23 @@ interface ApiService {
 
     @GET("/api/posts/user/{userId}")
     suspend fun getPostsByUserId(
-        @Header("userId") userId: String
-    ): PostsResponse
-
-    @GET("/api/users/profile/{userId}")
-    suspend fun getUserProfile(
         @Path("userId") userId: String
-    ): CurrentUserResponse
+    ): PostsResponse
 
     @GET("/api/posts/comments/{postId}")
     suspend fun getCommentsByPostId(
         @Path("postId") postId: String
     ): CommentsResponse
+
+    @PATCH("/api/posts/like/{postId}")
+    suspend fun likePost(
+        @Path("postId") postId: String
+    )
+
+    @PATCH("/api/posts/unlike/{postId}")
+    suspend fun unlikePost(
+        @Path("postId") postId: String
+    )
+
+
 }

@@ -13,5 +13,6 @@ data class Post(
     val creator: Creator,
     val media: List<String>,
     val no_of_comment: Int,
-    val no_of_like: Int
+    val no_of_like: Int,
+    val isLiked: Boolean
 )

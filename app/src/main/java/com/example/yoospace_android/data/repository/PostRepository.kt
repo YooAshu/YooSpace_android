@@ -26,4 +26,18 @@ class PostRepository {
     suspend fun getCommentsByPostId(postId: String): CommentsResponse {
         return RetrofitInstance.api.getCommentsByPostId(postId)
     }
+
+    suspend fun getPostsByUserId(userId: String): PostsResponse {
+        // This function will call the API to get posts by a specific user ID
+        return RetrofitInstance.api.getPostsByUserId(userId)
+    }
+
+    suspend fun likePost(postId: String) {
+        // This function will call the API to like a post
+        return RetrofitInstance.api.likePost(postId)
+    }
+    suspend fun unlikePost(postId: String) {
+        // This function will call the API to unlike a post
+        return RetrofitInstance.api.unlikePost(postId)
+    }
 }

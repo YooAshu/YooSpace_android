@@ -1,4 +1,4 @@
-package com.example.yoospace_android.ui.components
+package com.example.yoospace_android.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,6 +13,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +32,7 @@ import com.example.yoospace_android.ui.theme.LocalExtraColors
 fun Comment(
     comment: Comment
 ) {
+    var isLiked by remember { mutableStateOf(comment.isLiked) }
     Column(
         modifier = Modifier
             .padding(10.dp)
@@ -55,12 +60,11 @@ fun Comment(
             }
 
             Icon(
-//                if (isLiked) {
-                painterResource(id = R.drawable.liked)
-//                } else {
-//                    painterResource(id = R.drawable.not_liked)
-//                }
-                ,
+                if (isLiked) {
+                    painterResource(id = R.drawable.liked)
+                } else {
+                    painterResource(id = R.drawable.not_liked)
+                },
                 contentDescription = "Like",
                 modifier = Modifier
                     .padding(5.dp)
@@ -71,11 +75,11 @@ fun Comment(
                             event.changes.forEach { it.consume() }
                         }
                     }
-//                    .clickable {
-//                        isLiked = !isLiked
+                    .clickable {
+                        isLiked = !isLiked
 //                        noOfLike += if (isLiked) 1 else -1
-//                        // Handle like action here, e.g., update the post's like count
-//                    }
+                        // Handle like action here, e.g., update the post's like count
+                    }
                 ,
                 tint = Color.Unspecified
             )

@@ -13,5 +13,6 @@ data class Comment(
     val content: String,
     val createdAt: String,
     val no_of_like: Int,
-    val user: Creator
+    val user: Creator,
+    val isLiked: Boolean
 )

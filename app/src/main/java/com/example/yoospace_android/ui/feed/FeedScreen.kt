@@ -16,7 +16,7 @@ import androidx.navigation.NavController
 import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.navigation.ProtectedRoute
 import com.example.yoospace_android.navigation.Routes
-import com.example.yoospace_android.ui.components.Post
+import com.example.yoospace_android.ui.common.Post
 import com.example.yoospace_android.ui.theme.LocalExtraColors
 
 @Composable
@@ -28,14 +28,15 @@ fun FeedScreen(
 
         val isLoading = viewModel.isLoading
         val errorMessage = viewModel.errorMessage
-
+        var posts = viewModel.feedPosts
 
         LaunchedEffect(Unit) {
             // Fetch feed posts when the screen is first composed
+            posts = emptyList()
             viewModel.fetchFeedPosts()
         }
 
-        val posts = viewModel.feedPosts
+
 
         LazyColumn(
             modifier = Modifier
@@ -52,7 +53,7 @@ fun FeedScreen(
                     Text("No posts available")
                 }
             }
-            items(posts?.size ?: 0) { index ->
+            items(posts?.size ?: 0,  key = { index -> posts?.get(index)?._id ?: index }) { index ->
                 val post = posts?.get(index)
                 if (post != null) {
                     Post(
@@ -64,9 +65,18 @@ fun FeedScreen(
                         },
                         onProfileClick = { userId ->
                             if(TokenManager.getUserId()==userId) {
-                                navController.navigate("profile")
+                                navController.navigate(Routes.PROFILE)
                             } else
-                                navController.navigate("user_profile/$userId")
+                                navController.navigate(Routes.userProfile(userId))
+                        },
+                        onLikeClick = {
+                            postId, isLiked ->
+                            // Handle like click
+                            if (isLiked) {
+                                viewModel.unlikePost(postId)
+                            } else {
+                                viewModel.likePost(postId)
+                            }
                         }
 
                     )

@@ -1,4 +1,4 @@
-package com.example.yoospace_android.ui.components
+package com.example.yoospace_android.ui.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape

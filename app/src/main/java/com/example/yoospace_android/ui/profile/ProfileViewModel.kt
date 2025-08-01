@@ -1,5 +1,6 @@
 package com.example.yoospace_android.ui.profile
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -108,6 +109,56 @@ class ProfileViewModel() : ViewModel() {
                 userById = null
             } finally {
                 isUserByIdLoading = false
+            }
+        }
+    }
+
+    var isUsersPostsLoading by mutableStateOf(false)
+        private set
+    var usersPostsList by mutableStateOf<List<Post>?>(null)
+        private set
+    var userPostsErrorMessage by mutableStateOf<String?>(null)
+        private set
+
+
+    fun fetchUsersPostsById(userId: String) {
+        viewModelScope.launch {
+            isUsersPostsLoading = true
+            try {
+                val response = postRepository.getPostsByUserId(userId)
+                usersPostsList = response.data
+                userPostsErrorMessage = null
+            } catch (e: Exception) {
+                userPostsErrorMessage = "failed to get user posts : ${e.localizedMessage}"
+            } finally {
+                isUsersPostsLoading = false
+            }
+        }
+    }
+
+    var errorPostLike by mutableStateOf<String?>(null)
+
+    fun likePost(postId: String) {
+        viewModelScope.launch {
+            try {
+                postRepository.likePost(postId)
+                errorPostLike = null
+                // Optionally, you can update the post state to reflect the new like count
+            } catch (e: Exception) {
+                // Handle the exception, e.g., log it or show a message to the user
+                errorPostLike = "Failed to like post: ${e.localizedMessage}"
+            }
+        }
+    }
+    fun unlikePost(postId: String) {
+        viewModelScope.launch {
+            try {
+                postRepository.unlikePost(postId)
+                errorPostLike = null
+                // Optionally, you can update the post state to reflect the new like count
+            } catch (e: Exception) {
+                // Handle the exception, e.g., log it or show a message to the user
+                errorPostLike = "Failed to unlike post: ${e.localizedMessage}"
             }
         }
     }
