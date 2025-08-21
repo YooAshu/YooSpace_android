@@ -1,17 +1,17 @@
 package com.example.yoospace_android.data.repository
 
 import com.example.yoospace_android.data.api.RetrofitInstance
-import com.example.yoospace_android.data.model.CurrentUserResponse
+import com.example.yoospace_android.data.model.LoginData
 import com.example.yoospace_android.data.model.LoginRequest
-import com.example.yoospace_android.data.model.LoginResponse
 import com.example.yoospace_android.data.model.RegisterRequest
-import com.example.yoospace_android.data.model.RegisterResponse
+import com.example.yoospace_android.data.model.RegisteredUser
+import com.example.yoospace_android.data.model.Response
 
 
 class AuthRepository {
 
     // This function actually calls the login endpoint via Retrofit
-    suspend fun loginUser(request: LoginRequest): LoginResponse {
+    suspend fun loginUser(request: LoginRequest): Response<LoginData> {
         return RetrofitInstance.api.loginUser(request)
     }
 
@@ -19,7 +19,7 @@ class AuthRepository {
         return RetrofitInstance.api.logoutUser()
     }
 
-    suspend fun registerUser(request: RegisterRequest): RegisterResponse {
+    suspend fun registerUser(request: RegisterRequest): Response<RegisteredUser> {
         return RetrofitInstance.api.registerUser(request)
     }
 

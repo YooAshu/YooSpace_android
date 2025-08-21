@@ -1,13 +1,6 @@
 package com.example.yoospace_android.data.model
 
-data class RegisterResponse(
-    val data: Data,
-    val message: String,
-    val statusCode: Int,
-    val success: Boolean
-)
-
-data class Data(
+data class RegisteredUser(
     val __v: Int,
     val _id: String,
     val bio: String,

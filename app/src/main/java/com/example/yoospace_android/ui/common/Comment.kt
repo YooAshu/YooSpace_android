@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -24,18 +25,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.yoospace_android.R
 import com.example.yoospace_android.data.model.Comment
 import com.example.yoospace_android.ui.theme.LocalExtraColors
 
 @Composable
 fun Comment(
-    comment: Comment
+    comment: Comment,
+    onLikeClick: (String, Boolean) -> Unit,
+    onProfileClick: (String) -> Unit
 ) {
     var isLiked by remember { mutableStateOf(comment.isLiked) }
+    var noOfLike by remember { mutableIntStateOf(comment.no_of_like) }
     Column(
         modifier = Modifier
-            .padding(10.dp)
+            .padding(5.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(15.dp))
             .background(MaterialTheme.colorScheme.background)
@@ -49,40 +54,54 @@ fun Comment(
 
 
         ) {
-            Row {
+            Row(
+                modifier = Modifier.clickable {
+                    onProfileClick(comment.user._id)
+                }
+            ) {
                 ProfileImage(
-                    profileImage = comment.user.profile_image,
-                    userName = comment.user.userName,
+                    profileImage = ImageSource.Url(comment.user.profile_image),
+                    userId = comment.user._id,
                     size = 35,
                     modifier = Modifier.padding(end = 10.dp)
                 )
                 Text("@${comment.user.userName}", color = LocalExtraColors.current.textSecondary)
             }
-
-            Icon(
-                if (isLiked) {
-                    painterResource(id = R.drawable.liked)
-                } else {
-                    painterResource(id = R.drawable.not_liked)
-                },
-                contentDescription = "Like",
-                modifier = Modifier
-                    .padding(5.dp)
-                    .size(24.dp)
-                    .pointerInput(Unit) {
-                        awaitPointerEventScope {
-                            val event = awaitPointerEvent()
-                            event.changes.forEach { it.consume() }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    if (isLiked) {
+                        painterResource(id = R.drawable.liked)
+                    } else {
+                        painterResource(id = R.drawable.not_liked)
+                    },
+                    contentDescription = "Like",
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .size(24.dp)
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                val event = awaitPointerEvent()
+                                event.changes.forEach { it.consume() }
+                            }
                         }
-                    }
-                    .clickable {
-                        isLiked = !isLiked
-//                        noOfLike += if (isLiked) 1 else -1
-                        // Handle like action here, e.g., update the post's like count
-                    }
-                ,
-                tint = Color.Unspecified
-            )
+                        .clickable {
+                            onLikeClick(comment._id, isLiked)
+                            isLiked = !isLiked
+                            noOfLike += if (isLiked) 1 else -1
+                            // Handle like action here, e.g., update the post's like count
+                        },
+                    tint = Color.Unspecified
+                )
+                Text(
+                    text = "$noOfLike",
+                    color = LocalExtraColors.current.textSecondary,
+                    fontSize = 10.sp
+//                    modifier = Modifier.padding(top = 5.dp),
+//                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
         }
         Text(

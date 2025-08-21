@@ -1,33 +1,37 @@
 package com.example.yoospace_android.data.repository
 
 import com.example.yoospace_android.data.api.RetrofitInstance
-import com.example.yoospace_android.data.model.CommentsResponse
-import com.example.yoospace_android.data.model.PostsResponse
+import com.example.yoospace_android.data.model.Comment
+import com.example.yoospace_android.data.model.CommentCreateRequest
+import com.example.yoospace_android.data.model.Like
+import com.example.yoospace_android.data.model.Post
+import com.example.yoospace_android.data.model.Response
+import okhttp3.MultipartBody
 
 class PostRepository {
 
-    suspend fun getCurrentUserPosts(): PostsResponse {
+    suspend fun getCurrentUserPosts(): Response<List<Post>> {
         // This function will call the API to get the current user's posts
         return RetrofitInstance.api.getCurrentUserPosts()
     }
 
-    suspend fun getCurrentUserLikedPosts(): PostsResponse {
+    suspend fun getCurrentUserLikedPosts(): Response<List<Post>> {
         // This function will call the API to get the current user's liked posts
         return RetrofitInstance.api.getCurrentUserLikedPosts()
     }
 
-    suspend fun getFeedPosts(): PostsResponse {
+    suspend fun getFeedPosts(): Response<List<Post>> {
         // This function will call the API to get the feed posts
         return RetrofitInstance.api.getFeedPosts()
     }
-    suspend fun getPostById(postId: String): PostsResponse {
+    suspend fun getPostById(postId: String): Response<List<Post>> {
         return RetrofitInstance.api.getPostById(postId)
     }
-    suspend fun getCommentsByPostId(postId: String): CommentsResponse {
+    suspend fun getCommentsByPostId(postId: String): Response<List<Comment>> {
         return RetrofitInstance.api.getCommentsByPostId(postId)
     }
 
-    suspend fun getPostsByUserId(userId: String): PostsResponse {
+    suspend fun getPostsByUserId(userId: String): Response<List<Post>> {
         // This function will call the API to get posts by a specific user ID
         return RetrofitInstance.api.getPostsByUserId(userId)
     }
@@ -39,5 +43,27 @@ class PostRepository {
     suspend fun unlikePost(postId: String) {
         // This function will call the API to unlike a post
         return RetrofitInstance.api.unlikePost(postId)
+    }
+    suspend fun likeComment(commentId: String) {
+        // This function will call the API to like a comment
+        return RetrofitInstance.api.likeComment(commentId)
+    }
+    suspend fun unlikeComment(commentId: String) {
+        // This function will call the API to unlike a comment
+        return RetrofitInstance.api.unlikeComment(commentId)
+    }
+    suspend fun commentOnPost(postId: String, request: CommentCreateRequest): Response<Comment> {
+        // This function will call the API to comment on a post
+        return RetrofitInstance.api.commentOnPost(postId,request )
+    }
+
+    suspend fun getWhoLikedPost(postId: String): Response<List<Like>> {
+        // This function will call the API to get the list of users who liked the post
+        return RetrofitInstance.api.getWhoLiked(postId)
+    }
+
+    suspend fun createPost(body: MultipartBody) {
+        // This function will call the API to create a new post
+        return RetrofitInstance.api.createPost(body)
     }
 }

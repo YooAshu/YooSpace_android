@@ -5,13 +5,14 @@ import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import androidx.core.content.edit
+import com.example.yoospace_android.data.model.CurrentUser
 import com.example.yoospace_android.utils.AppContext
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 
 object TokenManager {
 
     val isLoggedIn = MutableStateFlow(false)
-
 
 
     // 1️⃣ Create or retrieve a secure master key to encrypt/decrypt your SharedPreferences
@@ -37,19 +38,22 @@ object TokenManager {
         isLoggedIn.value = getAccessToken() != null
         Log.d("TokenManager", "Tokens ${prefs.getString("access_token", null)}")
     }
+
     // 3️⃣ Save both access and refresh tokens securely
     fun saveTokens(accessToken: String, refreshToken: String, userId: String) {
         prefs.edit().apply {
             putString("access_token", accessToken)  // Save access token
             putString("refresh_token", refreshToken) // Save refresh token
-            putString("userId",userId)
+            putString("userId", userId)
             isLoggedIn.value = true
             apply() // Apply changes asynchronously
         }
     }
+
     fun saveAccessToken(accessToken: String) {
         prefs.edit { putString("access_token", accessToken) }
     }
+
     // 4️⃣ Retrieve access token when needed (e.g., for headers)
     fun getAccessToken(): String? = prefs.getString("access_token", null)
 
@@ -60,5 +64,28 @@ object TokenManager {
     // 6️⃣ Clear all stored tokens (e.g., on logout)
     fun clearTokens() = prefs.edit {
         clear()
-        isLoggedIn.value = false }
+        isLoggedIn.value = false
+    }
+
+    fun saveUser(user: CurrentUser) {
+        val json = Gson().toJson(user) // Convert object to JSON
+        prefs.edit().apply {
+            putString("user", json)
+            apply()
+        }
+    }
+
+    fun getUser(): CurrentUser? {
+        val json = prefs.getString("user", null) ?: return null
+        return Gson().fromJson(json, CurrentUser::class.java) // Convert back to object
+    }
+    fun updateUserFollowingNo(inc:Int){
+        val user = getUser()
+        if (user != null) {
+            user.no_of_following += inc
+            saveUser(user)
+        } else {
+            Log.e("TokenManager", "No user found to update following count")
+        }
+    }
 }

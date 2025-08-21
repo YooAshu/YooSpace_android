@@ -1,5 +1,6 @@
 package com.example.yoospace_android.ui.common
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,15 +14,23 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.svg.SvgDecoder
-
 @Composable
 fun ProfileImage(
-    userName: String,
-    profileImage: String,
+    userId: String,
+    profileImage: ImageSource,
     size: Int,
     modifier: Modifier = Modifier
-
 ) {
+    val model = when (profileImage) {
+        is ImageSource.Url -> {
+            profileImage.value.ifEmpty {
+                "https://api.dicebear.com/9.x/big-smile/svg?seed=${userId}&backgroundColor=c0aede"
+            }
+        }
+        is ImageSource.Local -> profileImage.value
+        is ImageSource.LocalResource -> profileImage.value
+    }
+
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
@@ -29,22 +38,20 @@ fun ProfileImage(
             add(OkHttpNetworkFetcherFactory())
         }
         .build()
+
     AsyncImage(
-        profileImage.ifEmpty { "https://api.dicebear.com/9.x/big-smile/svg?seed=${userName}&backgroundColor=c0aede" },
+        model = model,
         contentDescription = "Profile Image",
         imageLoader = imageLoader,
-        onLoading = {
-            Log.d("UserInfo", "Image loading started")
-        },
-        onSuccess = { success ->
-            Log.d("UserInfo", "Image loaded successfully: ${success.result}")
-        },
-        onError = { error ->
-            Log.e("UserInfo", "Image loading failed", error.result.throwable)
-        },
         modifier = modifier
             .size(size.dp)
             .clip(RoundedCornerShape(100)),
         contentScale = ContentScale.Crop
     )
+}
+
+sealed class ImageSource {
+    data class Url(val value: String) : ImageSource()
+    data class Local(val value: Uri) : ImageSource()
+    data class LocalResource(val value: Int) : ImageSource()
 }

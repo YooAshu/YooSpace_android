@@ -1,12 +1,5 @@
 package com.example.yoospace_android.data.model
 
-data class CommentsResponse(
-    val data: List<Comment>,
-    val message: String,
-    val statusCode: Int,
-    val success: Boolean
-)
-
 data class Comment(
     val _id: String,
     val commented_by: String,

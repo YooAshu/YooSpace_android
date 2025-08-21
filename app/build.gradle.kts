@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id ("com.google.dagger.hilt.android")
+    kotlin("kapt")
+    id ("kotlin-parcelize")
 }
 
 android {
@@ -50,6 +53,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.volley)
+    implementation(libs.androidx.animation.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -77,11 +81,25 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.2.0")
     implementation("io.coil-kt.coil3:coil-svg:3.2.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
+    implementation("androidx.compose.foundation:foundation:1.6.0")
+    implementation("com.vanniktech:android-image-cropper:4.6.0")
 
 //navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
 //constarint Layout
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
+    implementation("io.socket:socket.io-client:2.1.0") {
+        // Exclude org.json because Android already has its own version
+        exclude(group = "org.json", module = "json")
+    }
+//    haze
+    implementation("dev.chrisbanes.haze:haze:1.6.10")
+    implementation("dev.chrisbanes.haze:haze-materials:1.6.10")
+    //hilt
+    implementation ("com.google.dagger:hilt-android:2.52")
+    kapt ("com.google.dagger:hilt-compiler:2.52")
+    implementation( "androidx.hilt:hilt-navigation-compose:1.2.0")
 
 }
