@@ -6,7 +6,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,18 +34,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.canhub.cropper.CropImageContract
@@ -55,17 +63,26 @@ import com.example.yoospace_android.navigation.ProtectedRoute
 import com.example.yoospace_android.ui.common.ImageSource
 import com.example.yoospace_android.ui.common.ProfileImage
 import com.example.yoospace_android.ui.theme.LocalExtraColors
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.CupertinoMaterials
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
 fun AddPostScreen(
     navController: NavController,
     viewModel: PostViewModel,
 ) {
+    val hazeState = rememberHazeState()
     ProtectedRoute(
         navController
     ) {
@@ -101,21 +118,25 @@ fun AddPostScreen(
             AspectRatio(3, 4, "4:3", R.drawable.aspect_ratio_3_4),
             AspectRatio(16, 9, "16:9", R.drawable.aspect_ratio_16_9)
         )
-        var limit = 3 // Limit to 3 images
+        var limit by remember { mutableIntStateOf(3) } // overall max
         val photoPickerLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = limit)
+            contract = ActivityResultContracts.PickMultipleVisualMedia()
         ) { uris ->
             if (uris.isNotEmpty()) {
-                imageUris.value = imageUris.value + uris
-                croppedImageUris.value = croppedImageUris.value + uris
-                limit -= uris.size
+                val availableSlots = limit
+                val toAdd = uris.take(availableSlots) // only take up to remaining limit
+
+                imageUris.value = imageUris.value + toAdd
+                croppedImageUris.value = croppedImageUris.value + toAdd
+                limit -= toAdd.size
             }
         }
-        val hazeState = rememberHazeState()
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
+
         ) {
             item {
                 val user = TokenManager.getUser()
@@ -218,9 +239,11 @@ fun AddPostScreen(
                     if (imageUris.value.isEmpty()) {
                         IconButton(
                             onClick = {
-                                photoPickerLauncher.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
+                                if (limit > 0) {
+                                    photoPickerLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -243,16 +266,18 @@ fun AddPostScreen(
                                     modifier = Modifier
                                         .padding(top = 5.dp),
                                 )
+
                             }
                         }
                     } else {
                         Box(
-                            contentAlignment = Alignment.BottomCenter
+                            contentAlignment = Alignment.BottomCenter,
                         ) {
                             HorizontalPager(
                                 state = pagerState,
                                 modifier = Modifier
-                                    .fillMaxWidth(),
+                                    .fillMaxWidth()
+                                    .hazeSource(hazeState),
                                 pageSpacing = 8.dp, // Small gap between pages
                                 contentPadding = PaddingValues(horizontal = 32.dp) // Peek space
                             ) { page ->
@@ -291,18 +316,49 @@ fun AddPostScreen(
                                     contentScale = ContentScale.Crop
                                 )
                             }
-
                             Box(
                                 Modifier
-                                    .fillMaxWidth()
-                                    .height(30.dp)
-                                    .padding(10.dp)
-                                    .clip(RoundedCornerShape(25.dp))
+                                    .zIndex(2f)
+                                    .padding(bottom = 10.dp)
+                                    .fillMaxWidth(.7f)
+                                    .height(50.dp)
+                                    .clip(RoundedCornerShape(100))
+                                    .border(1.dp, Color.White.copy(.3f), RoundedCornerShape(100))
+                                    .hazeEffect(
+                                        state = hazeState, style = HazeStyle(
+                                            blurRadius = 10.dp,
+                                            backgroundColor = Color.Unspecified,
+                                            tint = HazeTint(
+                                                color = Color.White.copy(.2f),
+                                                blendMode = BlendMode.Lighten
+                                            ),
+                                            noiseFactor = .1f
+                                            )
+                                    )
+                                    .pointerInput(Unit) {
+                                        awaitPointerEventScope {
+                                            val event = awaitPointerEvent()
+                                            event.changes.forEach { it.consume() }
+                                        }
+                                    }
+                                    .clickable {
+                                        if (limit > 0) {
+                                            photoPickerLauncher.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                            )
+                                        }
+                                        else{
+                                            Toast.makeText(context, "Max 3 images", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    "Add More Images"
+                                    "Add More Images",
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
+
                         }
                         Row(
                             modifier = Modifier
