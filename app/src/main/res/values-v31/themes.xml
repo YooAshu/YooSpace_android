@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.YooSpace_android" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="Theme.Splash" parent="Theme.SplashScreen">
+
+        <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_icon_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/yoospace2</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/branding</item>
+    </style>
+</resources>

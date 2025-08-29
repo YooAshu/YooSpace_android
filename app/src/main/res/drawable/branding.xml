@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="80dp"
+    android:viewportWidth="200"
+    android:viewportHeight="80">
+    <item
+        android:gravity="center"
+        android:width="100.dp"
+        android:height="55.dp"
+        android:drawable="@drawable/by_asghar"
+        />
+</layer-list>

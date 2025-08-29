@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.data.model.GroupConversationData
@@ -14,13 +14,20 @@ import com.example.yoospace_android.data.model.SendMessageRequest
 import com.example.yoospace_android.data.repository.MessagesRepository
 import com.example.yoospace_android.utils.SocketManager
 import com.google.gson.Gson
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import javax.inject.Inject
 
-class GroupMessageViewModel(private val conversationId: String,private val repository: MessagesRepository) : ViewModel() {
-//    val repository = MessagesRepository()
+@HiltViewModel
+class GroupMessageViewModel @Inject constructor(
+    private val repository: MessagesRepository,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
+    private val conversationId: String =
+        savedStateHandle["conversationId"] ?: ""
     var groupDetails by mutableStateOf<GroupConversationData?>(null)
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
@@ -83,14 +90,14 @@ class GroupMessageViewModel(private val conversationId: String,private val repos
     }
 
     suspend fun getGroupDetails(): String? {
-            try {
-                val response = repository.getGroupConversationById(conversationId)
-                groupDetails = response.data
-                return groupDetails!!.conversation._id
-            } catch (e: Exception) {
-                Log.e("GroupMessageViewModel", "Error fetching group details: ${e.message}")
-                return null
-            }
+        try {
+            val response = repository.getGroupConversationById(conversationId)
+            groupDetails = response.data
+            return groupDetails!!.conversation._id
+        } catch (e: Exception) {
+            Log.e("GroupMessageViewModel", "Error fetching group details: ${e.message}")
+            return null
+        }
     }
 
     var isSendingMessage by mutableStateOf(false)
@@ -103,7 +110,8 @@ class GroupMessageViewModel(private val conversationId: String,private val repos
                 val conversationId = conversationId
                 val message = SendMessageRequest(
                     text = content,
-                    receiver = groupDetails!!.members.filter { it.member._id != TokenManager.getUserId()}.map { it.member._id }
+                    receiver = groupDetails!!.members.filter { it.member._id != TokenManager.getUserId() }
+                        .map { it.member._id }
                 )
                 repository.sendMessage(conversationId, message)
 //                _messages.value = listOf(response.data) + _messages.value
@@ -119,18 +127,5 @@ class GroupMessageViewModel(private val conversationId: String,private val repos
         super.onCleared()
         socket?.emit("leave_conversation", conversationId)
         socket?.off("receive_message")
-    }
-}
-
-class GroupChatViewModelFactory(
-    private val conversationId: String,
-    private val repository: MessagesRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(GroupMessageViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return GroupMessageViewModel(conversationId,repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

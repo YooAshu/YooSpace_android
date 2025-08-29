@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
@@ -21,7 +23,8 @@
             android:exported="true"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.YooSpace_android">
+            android:theme="@style/Theme.Splash"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

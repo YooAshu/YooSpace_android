@@ -1,20 +1,16 @@
 package com.example.yoospace_android.ui.profile
 
-import android.R
-import android.util.Log
-import androidx.compose.animation.AnimatedContentScope
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -44,27 +40,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.data.model.ConversationUserParcel
 import com.example.yoospace_android.data.model.Post
-import com.example.yoospace_android.data.repository.UserRepository
 import com.example.yoospace_android.navigation.ProtectedRoute
 import com.example.yoospace_android.navigation.Routes
 import com.example.yoospace_android.ui.common.Post
+import com.example.yoospace_android.ui.common.RequestTimedOut
 import com.example.yoospace_android.ui.profile.components.UserInfo
+import com.example.yoospace_android.ui.shimmer_componenets.PostShimmer
+import com.example.yoospace_android.ui.shimmer_componenets.UserInfoShimmer
 import com.example.yoospace_android.ui.theme.LocalExtraColors
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun UserProfileScreen(
-    userRepository: UserRepository,
+    viewModel: ProfileViewModel,
     navController: NavController,
     userId: String,
     onScroll: (Boolean) -> Unit
 ) {
-    val viewModel = remember { ProfileViewModel(userRepository) }
 
     ProtectedRoute(navController = navController) {
         val listState = rememberLazyListState()
@@ -105,9 +106,9 @@ fun UserProfileScreen(
             viewModel.getUserFollowing(userId = userId)
         }
         val user = viewModel.userById
-        val isPostsLoading = viewModel.isPostsLoading
-        val postsError = viewModel.postsErrorMessage
-        var followersList = viewModel.userFollowersList
+        val isPostsLoading = viewModel.isUsersPostsLoading
+        val postsError = viewModel.userPostsErrorMessage
+        val followersList = viewModel.userFollowersList
         val followingList = viewModel.userFollowingList
         posts.value = viewModel.usersPostsList
         val blurChange = remember { mutableStateOf(false) }
@@ -115,16 +116,37 @@ fun UserProfileScreen(
             targetValue = if (blurChange.value) 5.dp else 0.dp,
             label = "blurTransition"
         )
-
-        if (user != null) {
-            val isFollowing = remember { mutableStateOf(user.isFollowing) }
-            LazyColumn(
-                state = listState,
+        if (postsError == "408" || viewModel.userByIdErrorMessage == "408") {
+            Box(
                 modifier = Modifier
-                    .blur(animatedBlur)
-                    .fillMaxHeight()
-                    .background(LocalExtraColors.current.listBg)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
             ) {
+                RequestTimedOut {
+                    viewModel.fetchUserById(userId = userId)
+                    viewModel.fetchUsersPostsById(userId = userId)
+                    viewModel.getUserFollowers(userId = userId)
+                    viewModel.getUserFollowing(userId = userId)
+                }
+            }
+        }
+
+        val isFollowing = remember { mutableStateOf(user?.isFollowing ?: false) }
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .blur(animatedBlur)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            if (viewModel.isUserByIdLoading){
+                item{
+
+                UserInfoShimmer()
+                }
+            }
+            if (user != null) {
                 item {
                     UserInfo(
                         user,
@@ -148,12 +170,12 @@ fun UserProfileScreen(
                                 }
                             }
                         },
-                        onBlurBgChange = {blur->
+                        onBlurBgChange = { blur ->
                             blurChange.value = blur
                         }
                     )
                 }
-                item{
+                item {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -162,23 +184,24 @@ fun UserProfileScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Button(onClick = {
-                            if(isFollowing.value) {
-                                viewModel.unfollowUser(user._id)
-                                viewModel.userFollowersList = followersList?.filter { it._id != TokenManager.getUserId() }
-                                TokenManager.updateUserFollowingNo(-1)
-                                viewModel.userById?.no_of_follower -=1
-                            }
-                            else {
-                                viewModel.followUser(user._id)
-                                TokenManager.updateUserFollowingNo(1)
-                                viewModel.addCurrentUserToUserFollowerList()
-                                viewModel.userById?.no_of_follower +=1
-                            }
+                        Button(
+                            onClick = {
+                                if (isFollowing.value) {
+                                    viewModel.unfollowUser(user._id)
+                                    viewModel.userFollowersList =
+                                        followersList?.filter { it._id != TokenManager.getUserId() }
+                                    TokenManager.updateUserFollowingNo(-1)
+                                    viewModel.userById?.no_of_follower -= 1
+                                } else {
+                                    viewModel.followUser(user._id)
+                                    TokenManager.updateUserFollowingNo(1)
+                                    viewModel.addCurrentUserToUserFollowerList()
+                                    viewModel.userById?.no_of_follower += 1
+                                }
 
-                            isFollowing.value = !isFollowing.value
-                        },
-                            colors= ButtonDefaults.buttonColors(
+                                isFollowing.value = !isFollowing.value
+                            },
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent
                             ),
                         ) {
@@ -195,19 +218,20 @@ fun UserProfileScreen(
                             )
                         }
 
-                        Button(onClick = {
-                            val user = ConversationUserParcel(
-                                _id = user._id,
-                                fullName = user.fullName,
-                                profile_image = user.profile_image,
-                                userName = user.userName
-                            )
-                            navController.currentBackStackEntry
-                                ?.savedStateHandle
-                                ?.set("user", user)
-                            navController.navigate(Routes.directChat(user._id))
-                        },
-                            colors= ButtonDefaults.buttonColors(
+                        Button(
+                            onClick = {
+                                val user = ConversationUserParcel(
+                                    _id = user._id,
+                                    fullName = user.fullName,
+                                    profile_image = user.profile_image,
+                                    userName = user.userName
+                                )
+                                navController.currentBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("user", user)
+                                navController.navigate(Routes.directChat(user._id))
+                            },
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent
                             ),
                         ) {
@@ -225,56 +249,72 @@ fun UserProfileScreen(
                         }
                     }
                 }
-                item {
-                    if (isPostsLoading) {
-                        Text(
-                            "Loading posts...",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else if (postsError != null) {
-                        Text("Error loading posts: $postsError")
-                    } else if (posts.value?.isEmpty() == true) {
-                        Text("No posts available.")
-                    }
+            }
+            if (isPostsLoading){
+                items(3){
+                    PostShimmer()
+                    Spacer(Modifier.height(10.dp))
                 }
-                if (posts.value?.isNotEmpty() == true) {
-
-                    items(
-                        posts.value!!,
-                        key = { post -> post._id + "-" + post.no_of_like + "-" + post.isLiked }) { post ->
-                        Post(
-                            post,
-                            modifier = Modifier.padding(5.dp),
-                            onPostClick = { postId ->
-                                navController.navigate(Routes.postDetails(postId))
-                            },
-                            onProfileClick = { userId ->
-                                if (user._id == userId) {
-//                                        navController.navigate("profile")
-                                } else
-                                    navController.navigate(Routes.userProfile(userId))
-                            },
-                            onLikeClick = { postId, isLiked ->
-                                if (isLiked) {
-                                    viewModel.unlikePost(postId)
-                                } else {
-                                    viewModel.likePost(postId)
-                                }
-                            },
+            }
+            item {
+                if (postsError != "") {
+                    Text("Error loading posts: $postsError")
+                } else if (posts.value?.isEmpty() == true) {
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(
+                            com.example.yoospace_android.R.raw.empty_state_ghost
                         )
-                    }
-                }
-                item {
-                    Spacer(
+                    )
+                    LottieAnimation(
+                        composition = composition,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier.height(200.dp)
+                    )
+                    Text(
+                        text = "This User has no posts yet ",
                         modifier = Modifier
-                            .height(80.dp)
                             .fillMaxWidth()
+                            .padding(20.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
+            if (posts.value?.isNotEmpty() == true) {
+
+                items(
+                    posts.value!!,
+                    key = { post -> post._id + "-" + post.no_of_like + "-" + post.isLiked }) { post ->
+                    Post(
+                        post,
+                        modifier = Modifier.padding(5.dp),
+                        onPostClick = { postId ->
+                            navController.navigate(Routes.postDetails(postId))
+                        },
+                        onProfileClick = { userId ->
+                            if (post.creator._id == userId) {
+//                                        navController.navigate("profile")
+                            } else
+                                navController.navigate(Routes.userProfile(userId))
+                        },
+                        onLikeClick = { postId, isLiked ->
+                            if (isLiked) {
+                                viewModel.unlikePost(postId)
+                            } else {
+                                viewModel.likePost(postId)
+                            }
+                        },
+                    )
+                }
+            }
+            item {
+                Spacer(
+                    modifier = Modifier
+                        .height(80.dp)
+                        .fillMaxWidth()
+                )
+            }
         }
+
     }
 
 }

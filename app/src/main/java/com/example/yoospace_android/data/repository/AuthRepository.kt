@@ -6,9 +6,11 @@ import com.example.yoospace_android.data.model.LoginRequest
 import com.example.yoospace_android.data.model.RegisterRequest
 import com.example.yoospace_android.data.model.RegisteredUser
 import com.example.yoospace_android.data.model.Response
+import javax.inject.Inject
+import javax.inject.Singleton
 
-
-class AuthRepository {
+@Singleton
+class AuthRepository @Inject constructor() {
 
     // This function actually calls the login endpoint via Retrofit
     suspend fun loginUser(request: LoginRequest): Response<LoginData> {

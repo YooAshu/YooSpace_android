@@ -9,9 +9,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.yoospace_android.data.model.ConversationItemModel
-import com.example.yoospace_android.data.model.Group
 import com.example.yoospace_android.data.model.GroupInvite
 import com.example.yoospace_android.data.repository.MessagesRepository
+import com.example.yoospace_android.data.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -19,29 +20,45 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONArray
 import java.io.File
 import java.io.FileOutputStream
+import java.net.SocketTimeoutException
+import javax.inject.Inject
 
-class AllChatsViewModel : ViewModel() {
-    val repository = MessagesRepository()
+@HiltViewModel
+class AllChatsViewModel @Inject constructor(
+    private val repository: MessagesRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
     var convoList by mutableStateOf<List<ConversationItemModel>>(emptyList())
         private set
-    var isLoading by mutableStateOf<Boolean>(false)
+    var isLoading by mutableStateOf<Boolean>(true)
         private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
-
-    fun getAllChats() {
+    var isRefreshing by mutableStateOf(false)
+        private set
+    var followersList = userRepository.currentUserFollowers
+    fun getAllChats(forceRefresh: Boolean = false) {
         viewModelScope.launch {
-            isLoading = true
+            if(forceRefresh){
+                isRefreshing = true
+            } else {
+                isLoading = true
+            }
+            errorMessage = null
             try {
                 val response = repository.getAllConversations()
                 convoList = response.data
-                errorMessage = null
-            } catch (e: Exception) {
+            }
+            catch (_: SocketTimeoutException){
+                errorMessage = "408"
+            }
+            catch (e: Exception) {
                 // Handle the exception, e.g., log it or show a message to the user
                 Log.d("AllChatsViewModel", "Error fetching conversations: ${e.localizedMessage}")
                 errorMessage = e.message ?: "An error occurred"
             } finally {
                 isLoading = false
+                isRefreshing = false
             }
         }
     }

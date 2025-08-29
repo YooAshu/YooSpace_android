@@ -9,6 +9,7 @@ import com.example.yoospace_android.data.model.DiscoverUser
 import com.example.yoospace_android.data.model.SearchBody
 import com.example.yoospace_android.data.repository.UserRepository
 import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class DiscoverPeopleViewModel  : ViewModel() {
     val repository = UserRepository()
@@ -22,10 +23,13 @@ class DiscoverPeopleViewModel  : ViewModel() {
         viewModelScope.launch {
             isDiscoverPeopleLoading = true
             hasSearched = false
+            errorMessage = null
             try {
                 val response = repository.discoverUsers()
                 discoverUsersList = response.data.users
-                errorMessage = null
+            }
+            catch (_: SocketTimeoutException){
+                errorMessage = "408"
             }
             catch (e: Exception) {
                 errorMessage = e.message
@@ -40,12 +44,16 @@ class DiscoverPeopleViewModel  : ViewModel() {
         viewModelScope.launch {
             hasSearched = true
             isDiscoverPeopleLoading = true
+            errorMessage = null
             try {
-
                 val response = repository.searchDiscoverUsers(SearchBody(inputValue = query))
                 discoverUsersList = response.data.users
-                errorMessage = null
-            } catch (e: Exception) {
+
+            }
+            catch (_: SocketTimeoutException){
+                errorMessage = "408"
+            }
+            catch (e: Exception) {
                 errorMessage = e.message
             } finally {
                 isDiscoverPeopleLoading = false

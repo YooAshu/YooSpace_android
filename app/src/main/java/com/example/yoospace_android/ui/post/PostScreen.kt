@@ -1,9 +1,9 @@
 package com.example.yoospace_android.ui.post
 
+import android.os.Build
 import android.util.Log
-import androidx.compose.animation.AnimatedContentScope
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,11 +22,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,39 +36,50 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.yoospace_android.R
 import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.data.model.Like
 import com.example.yoospace_android.navigation.ProtectedRoute
 import com.example.yoospace_android.navigation.Routes
 import com.example.yoospace_android.ui.common.Comment
 import com.example.yoospace_android.ui.common.FormInputField
+import com.example.yoospace_android.ui.common.ImageSource
 import com.example.yoospace_android.ui.common.Modal
 import com.example.yoospace_android.ui.common.Post
 import com.example.yoospace_android.ui.common.ProfileImage
-import com.example.yoospace_android.ui.common.ImageSource
+import com.example.yoospace_android.ui.common.RequestTimedOut
+import com.example.yoospace_android.ui.shimmer_componenets.CommentShimmer
+import com.example.yoospace_android.ui.shimmer_componenets.PostShimmer
 import com.example.yoospace_android.ui.theme.LocalExtraColors
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PostScreen(
-    viewModel: PostViewModel = viewModel(),
+    viewModel: PostViewModel,
     navController: NavController,
     postId: String,
     onScroll: (Boolean) -> Unit = { } // true = show, false = hide
 ) {
     ProtectedRoute(navController) {
         val listState = rememberLazyListState()
-        var previousIndex by remember { mutableStateOf(0) }
-        var previousOffset by remember { mutableStateOf(0) }
+        var previousIndex by remember { mutableIntStateOf(0) }
+        var previousOffset by remember { mutableIntStateOf(0) }
         LaunchedEffect(listState) {
             snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
                 .collect { (index, offset) ->
-                    val scrollingUp = index < previousIndex || offset==0||
+                    val scrollingUp = index < previousIndex || offset == 0 ||
                             (index == previousIndex && offset < previousOffset)
 
                     onScroll(scrollingUp) // true = show, false = hide
@@ -84,7 +99,6 @@ fun PostScreen(
         val isCommentsLoading = viewModel.isCommentLoading
         val comments = viewModel.comments
         val commentErrorMessage = viewModel.commentErrorMessage
-        val errorPostLike = viewModel.errorPostLike
         var commentContent by remember { mutableStateOf("") }
         var likeModalVisible by remember { mutableStateOf(false) }
         val likesList: List<Like> = viewModel.likesList
@@ -93,13 +107,20 @@ fun PostScreen(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .background(LocalExtraColors.current.listBg)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
             item {
                 if (isLoading) {
-                    Text("Loading post...")
+                    PostShimmer()
                 } else if (errorMessage != null) {
-                    Text("Error: $errorMessage")
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                    ) {
+                        Text("Error: $errorMessage", textAlign = TextAlign.Center)
+                    }
                 } else if (post != null) {
                     Post(
                         post = post,
@@ -120,8 +141,6 @@ fun PostScreen(
                         },
                         showLikeModal = { likeModalVisible = true }
                     )
-                } else {
-                    Text("Post not found")
                 }
             }
 
@@ -134,12 +153,13 @@ fun PostScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Box(
-                        modifier = Modifier.fillMaxWidth(.7f)
+                        modifier = Modifier.fillMaxWidth(.75f)
                     ) {
                         FormInputField(
                             value = commentContent,
                             onValueChange = { commentContent = it },
                             label = "Add a comment",
+                            modifier = Modifier
                         )
                     }
 
@@ -147,32 +167,66 @@ fun PostScreen(
                         onClick = {
                             if (commentContent.isNotEmpty()) {
                                 viewModel.commentOnPost(postId, commentContent)
+                                viewModel.incrementCommentCount()
                                 commentContent = ""
                             }
                         },
                         enabled = !viewModel.isCommenting,
                         modifier = Modifier,
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(0.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        )
 
                     ) {
                         Text(
                             text = "Comment",
                             modifier = Modifier
                                 .padding(4.dp)
+                                .clip(RoundedCornerShape(20.dp))
                                 .background(
-                                    if (commentContent.isEmpty()) MaterialTheme.colorScheme.primary.copy(
-                                        .6f
-                                    ) else MaterialTheme.colorScheme.primary
+                                    colorResource(R.color.btn_1)
                                 )
                                 .padding(8.dp),
                             color = LocalExtraColors.current.textPrimary,
-
+                            fontSize = 12.sp
                             )
                     }
 
 
                 }
 
+            }
+            if(isCommentsLoading){
+                items(
+                    count = 4
+                ){
+                    CommentShimmer()
+                    Spacer(Modifier.height(10.dp))
+                }
+
+            }
+            item {
+                if (comments == null && commentErrorMessage == "408") {
+                    RequestTimedOut {
+                        viewModel.getCommentsByPostId(postId)
+                    }
+                }
+                else if(comments?.isEmpty()==true){
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.empty_state_ghost))
+                    LottieAnimation(
+                        composition = composition,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier.height(200.dp)
+                    )
+                    Text(
+                        text ="No Comments yet Be the first one to comment",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
             items(comments?.size ?: 0) { index ->
@@ -211,7 +265,14 @@ fun PostScreen(
                 LazyColumn(
                     modifier = Modifier
                 ) {
-                    item { Text("User Likes", fontWeight = FontWeight.Bold, fontSize = 24.sp, modifier = Modifier.padding(start = 20.dp, bottom = 20.dp)) }
+                    item {
+                        Text(
+                            "User Likes",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp,
+                            modifier = Modifier.padding(start = 20.dp, bottom = 20.dp)
+                        )
+                    }
                     items(
                         items = likesList,
                         key = { it._id }
@@ -223,7 +284,7 @@ fun PostScreen(
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(LocalExtraColors.current.listBg)
                                 .padding(10.dp)
-                                .clickable{
+                                .clickable {
                                     likeModalVisible = false
                                     if (TokenManager.getUserId() == like.usersLiked._id) {
                                         navController.navigate(Routes.PROFILE)

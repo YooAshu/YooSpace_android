@@ -1,10 +1,8 @@
 package com.example.yoospace_android.ui.profile
 
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,32 +34,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.example.yoospace_android.data.local.TokenManager
-import com.example.yoospace_android.data.repository.UserRepository
 import com.example.yoospace_android.navigation.ProtectedRoute
 import com.example.yoospace_android.ui.common.FormInputField
-import com.example.yoospace_android.ui.common.ProfileImage
 import com.example.yoospace_android.ui.common.ImageSource
+import com.example.yoospace_android.ui.common.ProfileImage
 import com.example.yoospace_android.ui.theme.LocalExtraColors
 import com.example.yoospace_android.utils.generateGradient
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
 @Composable
 fun UpdateProfileScreen(
-    userRepository: UserRepository,
+    viewModel: ProfileViewModel,
     navController: NavController,
 ) {
-    val viewModel = remember { ProfileViewModel(userRepository) }
 
     val user = TokenManager.getUser()
     var profileImageUri: Uri? = null

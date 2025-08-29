@@ -5,9 +5,9 @@ data class Message(
     val _id: String,
     val conversationId: String,
     val createdAt: String,
-    val receiver: List<MessageParticipant>,
+    val receiver: List<String>,
     val seenBy: List<String>,
-    val sender: MessageParticipant,
+    val sender: String,
     val text: String,
     val updatedAt: String
 )

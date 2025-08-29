@@ -45,6 +45,7 @@ import com.example.yoospace_android.navigation.Routes
 import com.example.yoospace_android.ui.common.FormInputField
 import com.example.yoospace_android.ui.common.ProfileImage
 import com.example.yoospace_android.ui.common.ImageSource
+import com.example.yoospace_android.ui.common.RequestTimedOut
 import com.example.yoospace_android.ui.theme.LocalExtraColors
 
 @Composable
@@ -113,6 +114,17 @@ fun DiscoverPeopleScreen(
                     )
                 }
             }
+            if (viewModel.errorMessage == "408") {
+                if (!viewModel.hasSearched)
+                    RequestTimedOut {
+                        viewModel.fetchDiscoverUsers()
+                    }
+                else{
+                    RequestTimedOut {
+                        viewModel.searchDiscoverUsers(searchQuery)
+                    }
+                }
+            }
             LazyColumn {
                 items(discoverUsersList, key = { it._id }) { user ->
                     Row(
@@ -120,7 +132,7 @@ fun DiscoverPeopleScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 10.dp, vertical = 3.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(LocalExtraColors.current.listBg)
+                            .background(LocalExtraColors.current.item_bg)
                             .padding(10.dp)
                             .clickable {
                                 navController.navigate(Routes.userProfile(user._id))

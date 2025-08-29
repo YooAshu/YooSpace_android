@@ -57,7 +57,7 @@ fun PostTypeButtons(
                     .height(3.dp)
                     .padding(horizontal = 30.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White.copy(if (typeOfPost.intValue == 0) 1f else 0.1f))
+                    .background(MaterialTheme.colorScheme.primary.copy(if (typeOfPost.intValue == 0) 1f else 0.1f))
             )
 
         }
@@ -84,7 +84,7 @@ fun PostTypeButtons(
                     .height(3.dp)
                     .padding(horizontal = 30.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White.copy(if (typeOfPost.intValue == 1) 1f else 0.1f))
+                    .background(MaterialTheme.colorScheme.primary.copy(if (typeOfPost.intValue == 1) 1f else 0.1f))
             )
 
         }

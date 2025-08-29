@@ -86,11 +86,26 @@ fun DirectMessageScreen(
                         .background(MaterialTheme.colorScheme.outline)
                 )
             }
+            if (viewModel.messagesLoading.value){
+//                show a material3 circular progress indicator
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                }
+                return@Column
+            }
             LazyColumn(modifier = Modifier.weight(.8f), reverseLayout = true) {
                 items(messages) { msg ->
                     ChatBubble(
                         message = msg.text,
-                        isSentByMe = msg.sender._id != sender._id,
+                        isSentByMe = msg.sender != sender._id,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }

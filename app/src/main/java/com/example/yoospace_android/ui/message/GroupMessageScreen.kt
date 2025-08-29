@@ -1,6 +1,5 @@
 package com.example.yoospace_android.ui.message
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.yoospace_android.R
 import com.example.yoospace_android.data.local.TokenManager
-import com.example.yoospace_android.data.model.ConversationItemModel
 import com.example.yoospace_android.data.model.ConversationParticipants
 import com.example.yoospace_android.data.model.GroupDetailsParcel
 import com.example.yoospace_android.navigation.ProtectedRoute
@@ -108,12 +106,11 @@ fun GroupMessageScreen(
             LazyColumn(modifier = Modifier.weight(.8f), reverseLayout = true) {
                 items(messages) { msg ->
                     val senderDetails: ConversationParticipants? =
-                        allGroupDetail!!.members.find { it.member._id==msg.sender._id }?.member
-                    Log.d("GroupMessageScreen", "Sender Details: $senderDetails")
+                        allGroupDetail!!.members.find { it.member._id==msg.sender }?.member
                     if (senderDetails != null)
                         ChatBubble(
                             message = msg.text,
-                            isSentByMe = msg.sender._id == TokenManager.getUserId(),
+                            isSentByMe = msg.sender == TokenManager.getUserId(),
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             senderName = senderDetails.userName,
                             senderProfileImageSrc = senderDetails.profile_image,

@@ -28,7 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.yoospace_android.R
 import com.example.yoospace_android.ui.common.FormInputField
@@ -37,7 +37,7 @@ import com.example.yoospace_android.ui.theme.LocalExtraColors
 @Composable
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
-    viewModel: AuthViewModel = viewModel(),
+    viewModel: AuthViewModel ,
     navController: NavController
 ) {
     var email by remember { mutableStateOf("") }
@@ -64,12 +64,17 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Logo
         Image(
-            painter = painterResource(id = R.drawable.yoospace),
+            painter = painterResource(id = R.drawable.yoospace2),
             contentDescription = "Logo",
-            modifier = Modifier.fillMaxWidth(.5f)
+            modifier = Modifier.fillMaxWidth(.3f)
         )
-
+        Image(
+            painter = painterResource(id = R.drawable.yoospace_text),
+            contentDescription = "Logo",
+            modifier = Modifier.fillMaxWidth(.3f)
+        )
         Spacer(modifier = Modifier.height(20.dp))
 
         Column(
@@ -130,4 +135,48 @@ fun RegisterScreen(
             }
         )
     }
+    val error = viewModel.registerError
+    var showDialog by remember { mutableStateOf(false) }
+
+// Open dialog whenever error changes
+    LaunchedEffect(error) {
+        showDialog = error != null
+    }
+
+    if (showDialog && error != null) {
+        Dialog(onDismissRequest = { showDialog = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(LocalExtraColors.current.cardBackground)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "Error",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LocalExtraColors.current.textSecondary
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { showDialog = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LocalExtraColors.current.btn1,
+                        contentColor = LocalExtraColors.current.textPrimary
+                    )
+                ) {
+                    Text("OK")
+                }
+            }
+        }
+    }
+
+
 }

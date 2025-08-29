@@ -3,6 +3,7 @@ package com.example.yoospace_android.data.api
 import android.content.Context
 import android.util.Log
 import com.example.yoospace_android.data.local.TokenManager
+import com.example.yoospace_android.utils.SocketManager
 import okhttp3.Authenticator
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -43,6 +44,7 @@ class TokenAuthenticator() : Authenticator {
                 .build()
         } else {
             tokenManager.clearTokens()
+            SocketManager.disconnect()
             null // Logout user if refresh fails
         }
     }

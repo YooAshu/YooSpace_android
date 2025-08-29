@@ -98,8 +98,14 @@ dependencies {
     implementation("dev.chrisbanes.haze:haze:1.6.10")
     implementation("dev.chrisbanes.haze:haze-materials:1.6.10")
     //hilt
-    implementation ("com.google.dagger:hilt-android:2.52")
-    kapt ("com.google.dagger:hilt-compiler:2.52")
+    implementation ("com.google.dagger:hilt-android:2.57.1")
+    kapt ("com.google.dagger:hilt-compiler:2.57.1")
     implementation( "androidx.hilt:hilt-navigation-compose:1.2.0")
+
+//    lottie
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
+
+//    splash
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 }

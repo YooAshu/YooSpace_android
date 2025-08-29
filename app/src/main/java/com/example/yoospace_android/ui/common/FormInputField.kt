@@ -1,7 +1,6 @@
 package com.example.yoospace_android.ui.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -33,6 +32,7 @@ fun FormInputField(
         label = { Text(label) },
         singleLine = true,
         modifier = modifier.fillMaxWidth(),
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+
     )
 }

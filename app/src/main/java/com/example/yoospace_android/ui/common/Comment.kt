@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +44,7 @@ fun Comment(
             .padding(5.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(15.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(colorResource(R.color.photo_card_bg) )
             .padding(all = 10.dp),
     ) {
         Row(
@@ -92,7 +93,7 @@ fun Comment(
                             noOfLike += if (isLiked) 1 else -1
                             // Handle like action here, e.g., update the post's like count
                         },
-                    tint = Color.Unspecified
+                    tint = if(isLiked) Color(0xFFFF0059) else LocalExtraColors.current.textSecondary
                 )
                 Text(
                     text = "$noOfLike",

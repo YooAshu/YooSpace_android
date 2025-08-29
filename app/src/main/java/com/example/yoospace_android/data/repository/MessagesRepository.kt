@@ -3,7 +3,6 @@ package com.example.yoospace_android.data.repository
 import com.example.yoospace_android.data.api.RetrofitInstance
 import com.example.yoospace_android.data.model.Conversation
 import com.example.yoospace_android.data.model.ConversationItemModel
-import com.example.yoospace_android.data.model.FollowDetail
 import com.example.yoospace_android.data.model.Group
 import com.example.yoospace_android.data.model.GroupConversationData
 import com.example.yoospace_android.data.model.GroupInvite
@@ -13,14 +12,24 @@ import com.example.yoospace_android.data.model.SendMessageRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import okhttp3.MultipartBody
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class MessagesRepository {
+@Singleton
+class MessagesRepository @Inject constructor() {
 
 //    to store group details
     private var _groupDetails = MutableStateFlow<GroupConversationData?>(null)
     val groupDetails : StateFlow<GroupConversationData?> = _groupDetails
+
+    private var _allConversations = MutableStateFlow<List<ConversationItemModel>?>(null)
+    val allConversations : StateFlow<List<ConversationItemModel>?> = _allConversations
     suspend fun getAllConversations(): Response<List<ConversationItemModel>> {
-        return RetrofitInstance.api.getAllConversations()
+        val response = RetrofitInstance.api.getAllConversations()
+        if (response.success) {
+            _allConversations.value = response.data
+        }
+        return response
     }
     suspend fun getDirectConversationById(targetUserid: String): Response<Conversation> {
         return RetrofitInstance.api.getDirectConversationById(targetUserid)

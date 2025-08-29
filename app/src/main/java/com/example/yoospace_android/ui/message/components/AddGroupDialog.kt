@@ -229,7 +229,7 @@ fun FollowersSelector(
                         if (isSelected) Color.Gray else Color.DarkGray,
                         shape = CircleShape
                     )
-                    .background(if (isSelected) Color(0x54BA6DF1) else Color.Transparent)
+                    .background(if (isSelected) Color(0x61CD98FF) else Color.Transparent)
                     .clickable { onToggleSelect(follower._id) }
                     .padding(start = 6.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -240,7 +240,7 @@ fun FollowersSelector(
                     size = 30,
                 )
                 Spacer(Modifier.width(6.dp))
-                Text(follower.userName, color = Color.White)
+                Text(follower.userName, color = LocalExtraColors.current.textSecondary)
             }
         }
     }

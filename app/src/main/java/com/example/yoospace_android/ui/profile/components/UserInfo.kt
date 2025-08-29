@@ -33,12 +33,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.yoospace_android.R
 import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.data.model.CurrentUser
 import com.example.yoospace_android.data.model.FollowDetail
@@ -54,11 +56,10 @@ import com.example.yoospace_android.utils.generateGradient
 fun UserInfo(
     user: CurrentUser,
     navController: NavController,
-    followersList: List<FollowDetail> = emptyList<FollowDetail>(),
-    followingList: List<FollowDetail> = emptyList<FollowDetail>(),
+    followersList: List<FollowDetail> = emptyList(),
+    followingList: List<FollowDetail> = emptyList(),
     onFollowClick: (String, Boolean) -> Unit,
     onBlurBgChange: (Boolean) -> Unit,
-    isLoading: Boolean = false
 ) {
     val userGradient = generateGradient(user.userName)
     ConstraintLayout(
@@ -103,7 +104,7 @@ fun UserInfo(
                         end.linkTo(parent.end, margin = 10.dp)
                     }
                     .clip(shape = RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(colorResource(R.color.btn_1))
                     .padding(horizontal = 10.dp, vertical = 5.dp)
                     .clickable {
                         navController.navigate(Routes.UPDATE_PROFILE)
@@ -235,7 +236,7 @@ fun UserStats(
                             .fillMaxWidth()
                             .padding(horizontal = 10.dp, vertical = 3.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(LocalExtraColors.current.listBg)
+                            .background(LocalExtraColors.current.item_bg)
                             .padding(10.dp)
                             .clickable {
                                 followListModalVisible = false

@@ -1,7 +1,6 @@
 package com.example.yoospace_android.ui.common
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -14,6 +13,7 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.svg.SvgDecoder
+
 @Composable
 fun ProfileImage(
     userId: String,

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,15 +44,16 @@ fun ConversationItem(
         } else {
             ImageSource.Url(avatarUrl)
         }
+
+
     Row(
         modifier = Modifier
             .padding(horizontal = 10.dp)
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(LocalExtraColors.current.cardBackground.copy(alpha = .5f))
+            .background(LocalExtraColors.current.item_bg)
             .padding(5.dp)
-            .clickable{
+            .clickable {
                 onClick()
             },
         horizontalArrangement = Arrangement.SpaceBetween
@@ -65,6 +67,7 @@ fun ConversationItem(
             Spacer(modifier = Modifier.padding(5.dp))
             Column {
                 // Title
+
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
@@ -74,11 +77,11 @@ fun ConversationItem(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if(!isSeen)
+                    color = if (!isSeen)
                         LocalExtraColors.current.textSecondary
                     else
                         LocalExtraColors.current.textSecondary.copy(alpha = 0.7f),
-                    fontWeight = if(!isSeen)
+                    fontWeight = if (!isSeen)
                         FontWeight.Bold
                     else
                         FontWeight.Normal

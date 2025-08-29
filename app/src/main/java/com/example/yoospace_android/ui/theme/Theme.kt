@@ -1,6 +1,5 @@
 package com.example.yoospace_android.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+
 private val DarkColorScheme = darkColorScheme(
     primary = Color.White,
     secondary = Color.Black,
@@ -23,7 +23,7 @@ private val LightColorScheme = lightColorScheme(
     primary = Color.Black,
     secondary = Color.White,
     tertiary = Pink40,
-    background = Color(0xFFFFFBFE),
+    background = Color(0xFFF1F4F8),
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

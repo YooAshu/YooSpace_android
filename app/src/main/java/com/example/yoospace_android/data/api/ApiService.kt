@@ -14,6 +14,7 @@ import com.example.yoospace_android.data.model.Like
 import com.example.yoospace_android.data.model.LoginData
 import com.example.yoospace_android.data.model.LoginRequest
 import com.example.yoospace_android.data.model.Message
+import com.example.yoospace_android.data.model.Notification
 import com.example.yoospace_android.data.model.Post
 import com.example.yoospace_android.data.model.RefreshTokenResponse
 import com.example.yoospace_android.data.model.RegisterRequest
@@ -69,6 +70,9 @@ interface ApiService {
 
     @PATCH("/api/users/update-profile")
     suspend fun updateProfile(@Body body: MultipartBody): Response<CurrentUser>
+
+    @GET("/api/users/notifications")
+    suspend fun getNotifications(): Response<List<Notification>>
 
 //    dynamic user route
 

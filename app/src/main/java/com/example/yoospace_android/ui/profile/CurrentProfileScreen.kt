@@ -1,5 +1,7 @@
 package com.example.yoospace_android.ui.profile
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -23,28 +25,33 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.yoospace_android.R
 import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.data.model.Post
-import com.example.yoospace_android.data.repository.UserRepository
 import com.example.yoospace_android.navigation.ProtectedRoute
 import com.example.yoospace_android.navigation.Routes
 import com.example.yoospace_android.ui.common.Post
+import com.example.yoospace_android.ui.common.RequestTimedOut
 import com.example.yoospace_android.ui.profile.components.PostTypeButtons
 import com.example.yoospace_android.ui.profile.components.UserInfo
-import com.example.yoospace_android.ui.theme.LocalExtraColors
+import com.example.yoospace_android.ui.shimmer_componenets.PostShimmer
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun CurrentProfileScreen(
-//    viewModel: ProfileViewModel = viewModel(),
-    userRepository: UserRepository,
+    viewModel: ProfileViewModel,
     navController: NavController,
     onScroll: (Boolean) -> Unit = { _ -> } // true = show, false = hide
 ) {
-    val viewModel = remember { ProfileViewModel(userRepository) }
 
     ProtectedRoute(navController = navController) {
         val listState = rememberLazyListState()
@@ -86,10 +93,10 @@ fun CurrentProfileScreen(
             viewModel.getCurrentUserFollowing()
         }
 
-        val isLoading = viewModel.isLoading
-        val error = viewModel.errorMessage
-//        val user = viewModel.currentUser
-        val user = TokenManager.getUser()
+//        val isLoading = viewModel.isLoading
+//        val error = viewModel.errorMessage
+        val user = viewModel.currentUser
+//        val user = TokenManager.getUser()
 
         val isPostsLoading = viewModel.isPostsLoading
         val postsList = viewModel.postsList
@@ -117,11 +124,11 @@ fun CurrentProfileScreen(
             state = listState,
             modifier = Modifier
                 .blur(animatedBlur)
-                .background(LocalExtraColors.current.listBg)
+                .background(MaterialTheme.colorScheme.background)
         ) {
 
             item {
-                if (user!=null)
+                if (user != null)
                     UserInfo(
                         user = user,
                         navController,
@@ -163,18 +170,41 @@ fun CurrentProfileScreen(
                     typeOfPost = typeOfPost
                 )
             }
+            if ((typeOfPost.intValue == 0 && isPostsLoading) || (typeOfPost.intValue == 1 && isLikedPostsLoading)) {
+                items(count = 3){
+                    PostShimmer()
+                    Spacer(Modifier.height(20.dp))
+                }
+            }
+
             item {
-                if (isPostsLoading) {
-                    Text(
-                        "Loading posts...",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else if (postsError != null) {
-                    Text("Error loading posts: $postsError")
+                if ((typeOfPost.intValue == 0 && postsError == "408") || (typeOfPost.intValue == 1 && likedPostsError == "408")) {
+                    RequestTimedOut {
+                        when (typeOfPost.intValue) {
+                            0 -> viewModel.fetchCurrentUserPosts()
+                            1 -> viewModel.fetchCurrentUserLikedPosts()
+                        }
+                        if(followersList?.isEmpty() == true){
+                            viewModel.getCurrentUserFollowers()
+                        }
+                        if(followingList?.isEmpty() == true) {
+                            viewModel.getCurrentUserFollowing()
+                        }
+                    }
                 } else if (posts.value?.isEmpty() == true) {
-                    Text("No posts available.")
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.empty_state_ghost))
+                    LottieAnimation(
+                        composition = composition,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier.height(200.dp)
+                    )
+                    Text(
+                        text = if (typeOfPost.intValue == 0) "No posts available Make Your 1st Post" else "No liked posts, Like Someone's post to see here",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
             if (posts.value?.isNotEmpty() == true) {
@@ -182,6 +212,7 @@ fun CurrentProfileScreen(
                 items(
                     items = posts.value!!,
                     key = { post -> post._id + "-" + post.no_of_like + "-" + post.isLiked }) { post ->
+                    val isLiking = post._id in viewModel.likingPosts
                     Post(
                         post,
                         modifier = Modifier.padding(5.dp),
@@ -195,10 +226,12 @@ fun CurrentProfileScreen(
                                 navController.navigate(Routes.userProfile(userId))
                         },
                         onLikeClick = { postId, isLiked ->
-                            if (isLiked) {
-                                viewModel.unlikePost(postId)
-                            } else {
-                                viewModel.likePost(postId)
+                            if (!isLiking) {
+                                if (isLiked) {
+                                    viewModel.unlikePost(postId)
+                                } else {
+                                    viewModel.likePost(postId)
+                                }
                             }
                         },
                     )

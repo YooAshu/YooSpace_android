@@ -10,7 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.yoospace_android.data.local.TokenManager
+import com.example.yoospace_android.data.repository.AuthRepository
 import com.example.yoospace_android.utils.AppContext
+import com.example.yoospace_android.utils.SocketManager
 
 @Composable
 fun ProtectedRoute(
@@ -23,12 +25,12 @@ fun ProtectedRoute(
     if (token == null) {
         // Redirect to login
         LaunchedEffect(Unit) {
+            AuthRepository().logoutUser()
             navController.navigate(Routes.LOGIN) {
                 popUpTo(0)
             }
         }
     } else {
         content()
-
     }
 }

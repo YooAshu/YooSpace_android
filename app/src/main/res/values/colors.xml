@@ -7,4 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="splash_bg">#FFFFFFFF</color> <!-- Change to your desired color -->
+    <color name="splash_icon_bg">#FFFFFF</color>
+    <color name="photo_card_bg">#FFFFFF</color>
+    <color name="shimmer_1">#FFB8B5B5</color>
+    <color name="shimmer_2">#FF8F8B8B</color>
+    <color name="nav_item_bg">#FFFFFF</color>
+    <color name="btn_1">#282828</color>
+
 </resources>

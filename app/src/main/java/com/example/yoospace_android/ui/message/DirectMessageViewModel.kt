@@ -4,31 +4,32 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.yoospace_android.data.model.Conversation
-import com.example.yoospace_android.data.model.ConversationParticipants
-import com.example.yoospace_android.data.model.ConversationUserParcel
 import com.example.yoospace_android.data.model.Message
 import com.example.yoospace_android.data.model.SendMessageRequest
 import com.example.yoospace_android.data.repository.MessagesRepository
 import com.example.yoospace_android.utils.SocketManager
 import com.google.gson.Gson
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import javax.inject.Inject
 
-class DirectMessageViewModel(
-    private val targetUser: ConversationUserParcel
+@HiltViewModel
+class DirectMessageViewModel @Inject constructor(
+    private val repository: MessagesRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
-    val repository = MessagesRepository()
+    private val targetId: String =
+        savedStateHandle["targetId"] ?: ""
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
     private val socket = SocketManager.getSocket()
-    var messagesLoading = mutableStateOf(false)
+    var messagesLoading = mutableStateOf(true)
         private set
     var globalScopeConversationId: String = ""
 
@@ -62,7 +63,7 @@ class DirectMessageViewModel(
 
     suspend fun getConversationId(): String {
         try {
-            val response = repository.getDirectConversationById(targetUser._id)
+            val response = repository.getDirectConversationById(targetId)
             return response.data._id
         } catch (e: Exception) {
             Log.e("DirectMessageViewModel", "Error fetching conversation: ${e.message}")
@@ -95,7 +96,7 @@ class DirectMessageViewModel(
                 val conversationId = globalScopeConversationId
                 val message = SendMessageRequest(
                     text = content,
-                    receiver = listOf(targetUser._id)
+                    receiver = listOf(targetId)
                 )
                 repository.sendMessage(conversationId, message)
 //                _messages.value = listOf(response.data) + _messages.value
@@ -125,14 +126,3 @@ class DirectMessageViewModel(
     }
 }
 
-class ChatViewModelFactory(
-    private val targetUser: ConversationUserParcel? = null
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DirectMessageViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return DirectMessageViewModel(targetUser = targetUser!!) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

@@ -1,10 +1,8 @@
 package com.example.yoospace_android.ui.common
 
-import android.util.Log
-import androidx.compose.animation.AnimatedContentScope
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +38,11 @@ import androidx.compose.ui.unit.sp
 import com.example.yoospace_android.R
 import com.example.yoospace_android.data.model.Post
 import com.example.yoospace_android.data.model.PostAspectRatio
+import com.example.yoospace_android.ui.theme.LocalExtraColors
+import com.example.yoospace_android.utils.formatPostDate
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun Post(
@@ -60,106 +61,110 @@ fun Post(
             .fillMaxWidth()
             .padding(5.dp)
             .background(
-                MaterialTheme.colorScheme.background,
-                RoundedCornerShape(25.dp)
+                colorResource(R.color.photo_card_bg),
+                RoundedCornerShape(35.dp)
             )
-            .padding(10.dp)
+            .padding(5.dp)
             .clickable {
                 onPostClick(post._id)
             }
+
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        val event = awaitPointerEvent()
-                        event.changes.forEach { it.consume() }
-                    }
-                }
-                .clickable {
-                    onProfileClick(post.creator._id)
-                },
+                .padding(top = 10.dp, start = 10.dp, end = 10.dp)
+                .fillMaxWidth(),
         ) {
-            ProfileImage(
-                size = 40,
-                userId = post.creator._id,
-                profileImage = ImageSource.Url(post.creator.profile_image),
-                modifier = Modifier.padding(5.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(100))
+                    .padding(end = 10.dp)
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            val event = awaitPointerEvent()
+                            event.changes.forEach { it.consume() }
+                        }
+                    }
+                    .clickable {
+                        onProfileClick(post.creator._id)
+                    }
+            ) {
+                ProfileImage(
+                    size = 40,
+                    userId = post.creator._id,
+                    profileImage = ImageSource.Url(post.creator.profile_image),
+                    modifier = Modifier.padding(5.dp)
+                )
+
+                Text(
+                    text = "@${post.creator.userName}",
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.padding(start = 10.dp)
+                )
+            }
             Text(
-                text = "@${post.creator.userName}",
+                text = formatPostDate(post.createdAt),
                 style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W400,
+                    color = MaterialTheme.colorScheme.primary.copy(.7f)
                 ),
                 modifier = Modifier.padding(start = 10.dp)
             )
+
         }
+
         if (post.content.isNotEmpty())
             Text(
                 text = post.content,
                 style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.W300,
+                    color = MaterialTheme.colorScheme.primary
                 ),
-                modifier = Modifier.padding(vertical = 5.dp)
+                modifier = Modifier.padding(vertical = 12.dp, horizontal = 20.dp)
             )
+
         val aspectRatio = post.aspectRatio ?: PostAspectRatio(1, 1)
-        Log.d("Post", "Media: $post")
-        if (post.media.isNotEmpty()) {
-            SwipeableImagePager(
-                imageUrls = imageUrls.ifEmpty { post.media },
+        if (post.media.isNotEmpty())
+            Box(
+                contentAlignment = Alignment.BottomStart,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(aspectRatio.x.toFloat() / aspectRatio.y.toFloat())
-            )
+                    .padding(top = 10.dp)
+            ) {
+                SwipeableImagePager(
+                    imageUrls = imageUrls.ifEmpty { post.media },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(aspectRatio.x.toFloat() / aspectRatio.y.toFloat())
+                )
+            }
 
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp)
-                .height(1.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color.White.copy(.3f))
-
-        )
         Row(
-            modifier = Modifier.padding(vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            modifier = Modifier
+                .padding(horizontal = 10.dp, vertical = 10.dp)
+                .clip(RoundedCornerShape(100))
+                .padding(3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+
+            ) {
             Row(
                 modifier = Modifier
-                    .padding(5.dp)
-                    .weight(1f),
+                    .padding(end = 15.dp)
+                    .clip(RoundedCornerShape(100))
+                    .background(if (isLiked) Color(0xFFFF0059) else Color.Transparent)
+                    .padding(horizontal = 5.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "$noOfLike Likes",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.primary
-                    ),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .pointerInput(Unit) {
-                            awaitPointerEventScope {
-                                val event = awaitPointerEvent()
-                                event.changes.forEach { it.consume() }
-                            }
-                        }
-                        .clickable {
-                            showLikeModal()
-
-                        }
-                )
                 Icon(
                     if (isLiked) {
                         painterResource(id = R.drawable.liked)
@@ -169,7 +174,7 @@ fun Post(
                     contentDescription = "Like",
                     modifier = Modifier
                         .padding(5.dp)
-                        .size(24.dp)
+                        .size(28.dp)
                         .pointerInput(Unit) {
                             awaitPointerEventScope {
                                 val event = awaitPointerEvent()
@@ -182,23 +187,61 @@ fun Post(
                             noOfLike += if (isLiked) 1 else -1
 
                         },
-                    tint = Color.Unspecified
+                    tint = if (!isLiked) MaterialTheme.colorScheme.primary else Color.Unspecified
                 )
+                Text(
+                    text = "$noOfLike ${if (noOfLike > 1) "Likes" else "Like"}",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (!isLiked) MaterialTheme.colorScheme.primary else Color.White
+                    ),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                val event = awaitPointerEvent()
+                                event.changes.forEach { it.consume() }
+                            }
+                        }
+                        .clickable {
+                            showLikeModal()
+                        }
+                )
+
 
             }
 
-            Text(
-                text = "${post.no_of_comment} Comments",
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.primary
-                ),
-                textAlign = TextAlign.Center,
+            Row(
                 modifier = Modifier
-                    .padding(5.dp)
-                    .weight(1f)
-            )
+                    .padding(5.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.comment_icon),
+                    contentDescription = "Like",
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .size(28.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "${post.no_of_comment}",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    ),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+
+                )
+
+            }
         }
+
+
     }
 }

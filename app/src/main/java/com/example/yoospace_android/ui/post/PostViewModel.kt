@@ -13,20 +13,26 @@ import com.example.yoospace_android.data.model.CommentCreateRequest
 import com.example.yoospace_android.data.model.Like
 import com.example.yoospace_android.data.model.Post
 import com.example.yoospace_android.data.repository.PostRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import java.io.File
 import java.io.FileOutputStream
+import java.net.SocketTimeoutException
+import javax.inject.Inject
 
-class PostViewModel : ViewModel() {
+@HiltViewModel
+class PostViewModel @Inject constructor(
+    private val postRepository: PostRepository
+) : ViewModel() {
 
     var post by mutableStateOf<Post?>(null)
-        private set
-    var isLoading by mutableStateOf(false)
+    private set
+    var isLoading by mutableStateOf(true)
         private set
     var errorMessage by mutableStateOf<String?>(null)
 
-    val postRepository = PostRepository()
+
 
     fun getPostById(postId: String) {
         viewModelScope.launch {
@@ -44,7 +50,7 @@ class PostViewModel : ViewModel() {
         }
     }
 
-    var isCommentLoading by mutableStateOf(false)
+    var isCommentLoading by mutableStateOf(true)
         private set
     var commentErrorMessage by mutableStateOf<String?>(null)
     var comments by mutableStateOf<List<Comment>?>(null)
@@ -53,22 +59,28 @@ class PostViewModel : ViewModel() {
     fun getCommentsByPostId(postId: String) {
         viewModelScope.launch {
             isCommentLoading = true
+            commentErrorMessage = null
             try {
                 val response = postRepository.getCommentsByPostId(postId)
                 comments = response.data
-                errorMessage = null
-            } catch (e: Exception) {
+            }
+            catch (
+                _: SocketTimeoutException
+            ){
+                commentErrorMessage = "408"
+            }
+            catch (e: Exception) {
                 // Handle the exception, e.g., log it or show a message to the user
-                errorMessage = "Failed to fetch comments: ${e.localizedMessage}"
+                commentErrorMessage = "Failed to fetch comments: ${e.localizedMessage}"
             } finally {
-                isLoading = false
+                isCommentLoading = false
             }
         }
     }
 
     var errorPostLike by mutableStateOf<String?>(null)
 
-    fun likePost(postId: String, function: () -> Unit = {}) {
+    fun likePost(postId: String) {
         viewModelScope.launch {
             try {
                 postRepository.likePost(postId)
@@ -82,7 +94,7 @@ class PostViewModel : ViewModel() {
         }
     }
 
-    fun unlikePost(postId: String, function: () -> Unit = {}) {
+    fun unlikePost(postId: String) {
         viewModelScope.launch {
             try {
                 postRepository.unlikePost(postId)
@@ -142,6 +154,11 @@ class PostViewModel : ViewModel() {
         }
     }
 
+    fun incrementCommentCount() {
+        post = post?.copy(
+            no_of_comment = (post?.no_of_comment ?: 0) + 1
+        )
+    }
     var likesList by mutableStateOf<List<Like>>(emptyList())
         private set
     var likesListErrorMessage by mutableStateOf<String?>(null)

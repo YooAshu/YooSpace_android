@@ -28,8 +28,6 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.FluentMaterials
-import dev.chrisbanes.haze.materials.HazeMaterials
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
@@ -52,7 +50,7 @@ fun BottomNav(navController: NavHostController, modifier: Modifier = Modifier,ha
                     .size(50.dp)
                     .clip(RoundedCornerShape(100))
                     .background(
-                        if (currentRoute == navItem.route) MaterialTheme.colorScheme.primary
+                        if (currentRoute == navItem.route) LocalExtraColors.current.bottomNavBg
                         else Color.Transparent
                     )
                     .clickable {

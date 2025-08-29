@@ -1,5 +1,7 @@
 package com.example.yoospace_android.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Box
@@ -7,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,7 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -24,30 +25,29 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.yoospace_android.data.model.ConversationUserParcel
 import com.example.yoospace_android.data.model.GroupDetailsParcel
-import com.example.yoospace_android.data.repository.MessagesRepository
-import com.example.yoospace_android.data.repository.UserRepository
+import com.example.yoospace_android.ui.auth.AuthViewModel
 import com.example.yoospace_android.ui.common.BottomNav
 import com.example.yoospace_android.ui.common.Header
 import com.example.yoospace_android.ui.discoverPeople.DiscoverPeopleScreen
 import com.example.yoospace_android.ui.feed.FeedScreen
+import com.example.yoospace_android.ui.feed.FeedViewModel
 import com.example.yoospace_android.ui.message.AllChatScreen
-import com.example.yoospace_android.ui.message.ChatViewModelFactory
+import com.example.yoospace_android.ui.message.AllChatsViewModel
 import com.example.yoospace_android.ui.message.DirectMessageScreen
 import com.example.yoospace_android.ui.message.DirectMessageViewModel
-import com.example.yoospace_android.ui.message.GroupChatViewModelFactory
 import com.example.yoospace_android.ui.message.GroupDetailsScreen
 import com.example.yoospace_android.ui.message.GroupMessageScreen
 import com.example.yoospace_android.ui.message.GroupMessageViewModel
+import com.example.yoospace_android.ui.notifications.NotificationScreen
+import com.example.yoospace_android.ui.notifications.NotificationViewModel
 import com.example.yoospace_android.ui.post.AddPostScreen
 import com.example.yoospace_android.ui.post.PostScreen
+import com.example.yoospace_android.ui.post.PostViewModel
 import com.example.yoospace_android.ui.profile.CurrentProfileScreen
+import com.example.yoospace_android.ui.profile.ProfileViewModel
 import com.example.yoospace_android.ui.profile.UpdateProfileScreen
 import com.example.yoospace_android.ui.profile.UserProfileScreen
-import dev.chrisbanes.haze.LocalHazeStyle
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 
 object Routes {
@@ -63,6 +63,7 @@ object Routes {
     const val UPDATE_PROFILE = "update_profile"
     const val ADD_POST = "add_post"
     const val GROUP_DETAILS = "group_details"
+    const val NOTIFICATIONS = "notifications"
 
     // Dynamic routes with parameters
     const val POST_DETAILS = "post_details/{postId}"
@@ -79,13 +80,10 @@ object Routes {
 
 //@OptIn(ExperimentalSharedTransitionApi::class)
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
     val hazeState = rememberHazeState()
-//    user repo for sharing
-    val userRepository = remember { UserRepository() }
-//    message repo for sharing
-    val messageRepository = remember { MessagesRepository() }
 //    to get the current back stack entry and destination
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
@@ -93,7 +91,15 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
     var headerVisible by remember { mutableStateOf(true) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = modifier.hazeSource(state = hazeState)) {
-            Header(visible = headerVisible)
+            val authViewModel: AuthViewModel = hiltViewModel()
+            Header(
+                visible = headerVisible,
+                onLogOutClick = { authViewModel.logoutUser() },
+                onNotificationsClick = {
+                    if (currentDestination != Routes.NOTIFICATIONS)
+                        navController.navigate(Routes.NOTIFICATIONS)
+                }
+            )
             NavHost(
                 navController = navController,
                 startDestination = Routes.PROFILE,
@@ -101,26 +107,36 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                 exitTransition = { ExitTransition.None },
                 popEnterTransition = { EnterTransition.None },
                 popExitTransition = { ExitTransition.None },
+                route = "main_graph"
             ) {
-                composable(Routes.HOME) {
+                composable(Routes.HOME) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("main_graph")
+                    }
+                    val feedViewModel: FeedViewModel = hiltViewModel(parentEntry)
                     FeedScreen(
                         navController = navController,
+                        viewModel = feedViewModel,
                     ) { visible ->
                         headerVisible = visible
                     }
                 }
                 composable(Routes.PROFILE) {
+                    val viewModel: ProfileViewModel = hiltViewModel()
                     CurrentProfileScreen(
                         navController = navController,
-                        userRepository = userRepository
+                        viewModel = viewModel
                     ) { visible ->
                         headerVisible = visible
                     }
                 }
                 composable(Routes.UPDATE_PROFILE) {
                     headerVisible = true
-                    UpdateProfileScreen(navController = navController,
-                        userRepository = userRepository)
+                    val viewModel: ProfileViewModel = hiltViewModel()
+                    UpdateProfileScreen(
+                        navController = navController,
+                        viewModel = viewModel
+                    )
                 }
                 composable(Routes.DISCOVER) {
                     headerVisible = true
@@ -128,8 +144,11 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                 }
                 composable(Routes.MESSAGES) {
                     headerVisible = true
-                    val followersList = userRepository.currentUserFollowers
-                    AllChatScreen(navController = navController, followersList = followersList)
+                    val viewModel: AllChatsViewModel = hiltViewModel()
+                    AllChatScreen(
+                        navController = navController,
+                        viewModel = viewModel
+                    )
                 }
                 composable(
                     route = Routes.DIRECT_CHAT,
@@ -139,12 +158,8 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                     val sender = navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.get<ConversationUserParcel>("user")
-                    val targetId = backStackEntry.arguments?.getString("targetId") ?: ""
                     // Create ViewModel for this chat
-                    val directMessageViewModel: DirectMessageViewModel = viewModel(
-                        factory = ChatViewModelFactory(targetUser = sender)
-                    )
-
+                    val directMessageViewModel: DirectMessageViewModel = hiltViewModel()
                     if (sender != null) {
                         DirectMessageScreen(
                             viewModel = directMessageViewModel, sender = sender,
@@ -160,11 +175,8 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                     val groupDetails = navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.get<GroupDetailsParcel>("groupDetails")
-                    val conversationId = backStackEntry.arguments?.getString("conversationId") ?: ""
-                    // Create ViewModel for this chat
-                    val groupMessageViewModel: GroupMessageViewModel = viewModel(
-                        factory = GroupChatViewModelFactory(conversationId,messageRepository)
-                    )
+
+                    val groupMessageViewModel: GroupMessageViewModel = hiltViewModel()
                     if (groupDetails != null) {
                         GroupMessageScreen(
                             viewModel = groupMessageViewModel, navController = navController,
@@ -175,16 +187,18 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                 }
                 composable(Routes.ADD_POST) {
                     headerVisible = true
-                    AddPostScreen(navController = navController)
+                    val viewModel: PostViewModel = hiltViewModel()
+                    AddPostScreen(navController = navController, viewModel = viewModel)
                 }
                 composable(
                     route = Routes.POST_DETAILS,
                     arguments = listOf(navArgument("postId") { type = NavType.StringType })
                 ) { backStackEntry ->
                     val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                    val viewModel: PostViewModel = hiltViewModel()
                     headerVisible = true
                     PostScreen(
-                        navController = navController, postId = postId,
+                        navController = navController, postId = postId, viewModel = viewModel
                     )
                 }
                 composable(
@@ -192,9 +206,10 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                     arguments = listOf(navArgument("userId") { type = NavType.StringType })
                 ) { backStackEntry ->
                     val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                    val viewModel: ProfileViewModel = hiltViewModel()
                     UserProfileScreen(
                         navController = navController,
-                        userRepository = userRepository,
+                        viewModel = viewModel,
                         userId = userId,
                     ) {
                         headerVisible = it
@@ -202,14 +217,24 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                 }
                 composable(
                     route = Routes.GROUP_DETAILS
-                ){backStackEntry ->
+                ) { backStackEntry ->
                     headerVisible = false
                     GroupDetailsScreen(
-                        navController = navController,
-                        groupDetails = messageRepository.groupDetails.collectAsState().value!!
+                        navController = navController
                     )
                 }
 
+                composable(
+                    route = Routes.NOTIFICATIONS
+                )
+                {
+                    val notificationViewModel: NotificationViewModel = hiltViewModel()
+                    headerVisible = true
+                    NotificationScreen(
+                        viewModel = notificationViewModel,
+                        navController = navController
+                    )
+                }
             }
 
         }
@@ -225,8 +250,7 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
                 navController = navController,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
-                    ,
+                    .padding(bottom = 16.dp),
                 hazeState = hazeState
             )
         }

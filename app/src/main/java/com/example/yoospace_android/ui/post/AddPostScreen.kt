@@ -2,7 +2,6 @@ package com.example.yoospace_android.ui.post
 
 
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -20,9 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -46,9 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.canhub.cropper.CropImageContract
@@ -59,8 +54,8 @@ import com.example.yoospace_android.data.local.TokenManager
 import com.example.yoospace_android.navigation.ProtectedRoute
 import com.example.yoospace_android.ui.common.ImageSource
 import com.example.yoospace_android.ui.common.ProfileImage
-import com.example.yoospace_android.ui.common.SwipeableImagePager
 import com.example.yoospace_android.ui.theme.LocalExtraColors
+import dev.chrisbanes.haze.rememberHazeState
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -69,7 +64,7 @@ import java.io.File
 @Composable
 fun AddPostScreen(
     navController: NavController,
-    viewModel: PostViewModel = viewModel(),
+    viewModel: PostViewModel,
 ) {
     ProtectedRoute(
         navController
@@ -116,6 +111,7 @@ fun AddPostScreen(
                 limit -= uris.size
             }
         }
+        val hazeState = rememberHazeState()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -125,20 +121,91 @@ fun AddPostScreen(
                 val user = TokenManager.getUser()
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .padding(10.dp)
+                        .fillMaxWidth()
                 ) {
-                    ProfileImage(
-                        userId  = user!!._id,
-                        profileImage = ImageSource.Url(user.profile_image),
-                        size = 50
-                    )
-                    Text(
-                        "@${user.userName}",
-                        color = LocalExtraColors.current.textSecondary,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ProfileImage(
+                            userId = user!!._id,
+                            profileImage = ImageSource.Url(user.profile_image),
+                            size = 50
+                        )
+                        Text(
+                            "@${user.userName}",
+                            color = LocalExtraColors.current.textSecondary,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            val requestBodyBuilder =
+                                MultipartBody.Builder().setType(MultipartBody.FORM)
+                            if (postText.value.isNotEmpty()) {
+                                requestBodyBuilder.addFormDataPart("content", postText.value)
+                            }
+                            croppedImageUris.value.forEachIndexed { index, uri ->
+                                if (uri != null) {
+                                    val file = File(
+                                        viewModel.getRealPathFromUri(
+                                            context,
+                                            uri
+                                        )
+                                    )
+                                    val requestFile = file.asRequestBody("image/*".toMediaType())
+                                    requestBodyBuilder.addFormDataPart(
+                                        "media",
+                                        "image_$index.jpg",
+                                        requestFile
+                                    )
+                                }
+                            }
+                            requestBodyBuilder.addFormDataPart(
+                                "aspectRatio",
+                                """{"x": ${aspectRatios[selectedAspectRatioIndex.intValue].x},
+                                     "y": ${aspectRatios[selectedAspectRatioIndex.intValue].y}}"""
+                            )
+                            if (postText.value.isEmpty() && croppedImageUris.value.isEmpty()) {
+                                // Show a message or handle the case where no content is provided
+                                Toast.makeText(
+                                    context,
+                                    "Please add some content or an image to post.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                viewModel.createPost(requestBodyBuilder.build(), onSuccess = {
+                                    Toast.makeText(
+                                        context,
+                                        "Post created successfully!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    navController.popBackStack()
+                                })
+
+                            }
+                        },
+                        modifier = Modifier,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = LocalExtraColors.current.textPrimary
+                        ),
+                        contentPadding = PaddingValues(0.dp)
+
+                    ) {
+                        Text(
+                            text =
+                                if (isCreatingPost) "Posting..." else "Post",
+                            color = LocalExtraColors.current.textPrimary,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(MaterialTheme.colorScheme.primary)
+                                .padding(horizontal = 20.dp, vertical = 5.dp),
+                            fontSize = 14.sp
+                        )
+                    }
+
                 }
             }
             item {
@@ -157,12 +224,14 @@ fun AddPostScreen(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .aspectRatio(1f),
+                                .aspectRatio(1f)
+                                .background(LocalExtraColors.current.cardBackground),
                         ) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.SpaceAround,
-                            ) {
+
+                                ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.upload_image),
                                     contentDescription = "Upload Image",
@@ -177,47 +246,63 @@ fun AddPostScreen(
                             }
                         }
                     } else {
-                        HorizontalPager(
-                            state = pagerState,
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            pageSpacing = 8.dp, // Small gap between pages
-                            contentPadding = PaddingValues(horizontal = 32.dp) // Peek space
-                        ) { page ->
-                            AsyncImage(
-                                model = croppedImageUris.value[page],
-                                contentDescription = "Image $page",
+                        Box(
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            HorizontalPager(
+                                state = pagerState,
                                 modifier = Modifier
-                                    .fillMaxWidth(1f) // Each image takes ~85% of screen width
-                                    .aspectRatio(
-                                        aspectRatios[selectedAspectRatioIndex.intValue].x.toFloat() /
-                                                aspectRatios[selectedAspectRatioIndex.intValue].y.toFloat()
-                                    )
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .clickable {
-                                        cropImage.launch(
-                                            CropImageContractOptions(
-                                                uri = imageUris.value[page],
-                                                cropImageOptions = CropImageOptions().apply {
-                                                    aspectRatioX =
-                                                        aspectRatios[selectedAspectRatioIndex.intValue].x
-                                                    aspectRatioY =
-                                                        aspectRatios[selectedAspectRatioIndex.intValue].y
-                                                    fixAspectRatio = true
-                                                    showCropOverlay = true
-                                                    showProgressBar = true
-                                                    allowRotation = true
-                                                    activityBackgroundColor =
-                                                        android.graphics.Color.BLACK
-
-                                                }
-                                            )
+                                    .fillMaxWidth(),
+                                pageSpacing = 8.dp, // Small gap between pages
+                                contentPadding = PaddingValues(horizontal = 32.dp) // Peek space
+                            ) { page ->
+                                AsyncImage(
+                                    model = croppedImageUris.value[page],
+                                    contentDescription = "Image $page",
+                                    modifier = Modifier
+                                        .fillMaxWidth(1f) // Each image takes ~85% of screen width
+                                        .aspectRatio(
+                                            aspectRatios[selectedAspectRatioIndex.intValue].x.toFloat() /
+                                                    aspectRatios[selectedAspectRatioIndex.intValue].y.toFloat()
                                         )
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .clickable {
+                                            cropImage.launch(
+                                                CropImageContractOptions(
+                                                    uri = imageUris.value[page],
+                                                    cropImageOptions = CropImageOptions().apply {
+                                                        aspectRatioX =
+                                                            aspectRatios[selectedAspectRatioIndex.intValue].x
+                                                        aspectRatioY =
+                                                            aspectRatios[selectedAspectRatioIndex.intValue].y
+                                                        fixAspectRatio = true
+                                                        showCropOverlay = true
+                                                        showProgressBar = true
+                                                        allowRotation = true
+                                                        activityBackgroundColor =
+                                                            android.graphics.Color.BLACK
 
-                                        selectedImageIndex.intValue = page
-                                    },
-                                contentScale = ContentScale.Crop
-                            )
+                                                    }
+                                                )
+                                            )
+
+                                            selectedImageIndex.intValue = page
+                                        },
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(30.dp)
+                                    .padding(10.dp)
+                                    .clip(RoundedCornerShape(25.dp))
+                            ) {
+                                Text(
+                                    "Add More Images"
+                                )
+                            }
                         }
                         Row(
                             modifier = Modifier
@@ -288,72 +373,7 @@ fun AddPostScreen(
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Button(
-                        onClick = {
-                            val requestBodyBuilder =
-                                MultipartBody.Builder().setType(MultipartBody.FORM)
-                            if (postText.value.isNotEmpty()) {
-                                requestBodyBuilder.addFormDataPart("content", postText.value)
-                            }
-                            croppedImageUris.value.forEachIndexed { index, uri ->
-                                if (uri != null) {
-                                    val file = File(
-                                        viewModel.getRealPathFromUri(
-                                            context,
-                                            uri
-                                        )
-                                    )
-                                    val requestFile = file.asRequestBody("image/*".toMediaType())
-                                    requestBodyBuilder.addFormDataPart(
-                                        "media",
-                                        "image_$index.jpg",
-                                        requestFile
-                                    )
-                                }
-                            }
-                            requestBodyBuilder.addFormDataPart(
-                                "aspectRatio",
-                                """{"x": ${aspectRatios[selectedAspectRatioIndex.intValue].x},
-                                     "y": ${aspectRatios[selectedAspectRatioIndex.intValue].y}}"""
-                            )
-                            if (postText.value.isEmpty() && croppedImageUris.value.isEmpty()) {
-                                // Show a message or handle the case where no content is provided
-                                Toast.makeText(
-                                    context,
-                                    "Please add some content or an image to post.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                viewModel.createPost(requestBodyBuilder.build(), onSuccess = {
-                                    Toast.makeText(
-                                        context,
-                                        "Post created successfully!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    navController.popBackStack()
-                                })
 
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(bottom = 70.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = LocalExtraColors.current.textPrimary
-                        )
-
-                    ) {
-                        Text(
-                            text =
-                                if (isCreatingPost) "Creating Post..." else "Create Post",
-                            color = LocalExtraColors.current.textPrimary,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(MaterialTheme.colorScheme.primary)
-                                .padding(horizontal = 20.dp, vertical = 5.dp),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                    }
                 }
 
             }

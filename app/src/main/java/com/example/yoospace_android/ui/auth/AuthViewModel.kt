@@ -13,10 +13,19 @@ import com.example.yoospace_android.data.model.RegisterRequest
 import com.example.yoospace_android.data.model.RegisteredUser
 import com.example.yoospace_android.data.model.Response
 import com.example.yoospace_android.data.repository.AuthRepository
+import com.example.yoospace_android.data.repository.UserRepository
+import com.example.yoospace_android.utils.SocketManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.IOException
+import java.net.SocketTimeoutException
+import javax.inject.Inject
 
-
-class AuthViewModel: ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val userRepository: UserRepository
+):ViewModel() {
 
     sealed class LoginState {
         object Idle : LoginState()
@@ -64,21 +73,29 @@ class AuthViewModel: ViewModel() {
                     response.data.refreshToken,
                     userId = response.data.user._id
                 )
-//                tokenManager.saveUserInfo(
-//                    userId = user._id,
-//                    userName = user.userName,
-//                    fullName = user.fullName,
-//                    profile_image = user.profile_image,
-//                    cover_image = user.cover_image,
-//                    bio = user.bio,
-//                    email = user.email
-//                )
+                SocketManager.init("https://yoo-space.onrender.com", response.data.accessToken)
                 tokenManager.saveUser(user)
                 loginState = LoginState.Success
-            } catch (e: Exception) {
-                loginError = "Login failed: ${e.localizedMessage}"
+            } catch (e: retrofit2.HttpException) {
+                // Extract error JSON body
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorMessage = try {
+                    JSONObject(errorBody ?: "").getString("message")
+                } catch (_: Exception) {
+                    "Login failed"
+                }
+                loginError = errorMessage
                 loginResponse = null
-                loginState = LoginState.Error("Login failed")
+                loginState = LoginState.Error(errorMessage)
+            } catch (_: SocketTimeoutException) {
+                loginError = "Request timed out"
+                loginState = LoginState.Error("Request timed out")
+            } catch (_: IOException) {
+                loginError = "Network error"
+                loginState = LoginState.Error("Network error")
+            } catch (_: Exception) {
+                loginError = "Unexpected error"
+                loginState = LoginState.Error("Unexpected error")
             } finally {
                 isLoading = false
             }
@@ -93,6 +110,8 @@ class AuthViewModel: ViewModel() {
             try {
                 repository.logoutUser()
                 tokenManager.clearTokens()
+                SocketManager.disconnect()
+                userRepository.clearNotifications()
             } catch (e: Exception) {
                 logoutError = "Logout failed: ${e.localizedMessage}"
             }
@@ -105,7 +124,7 @@ class AuthViewModel: ViewModel() {
     var registerResponse: Response<RegisteredUser>? by mutableStateOf(null)
         private set
 
-    fun registerUser(email: String, password: String,userName:String,fullName:String){
+    fun registerUser(email: String, password: String, userName: String, fullName: String) {
         viewModelScope.launch {
             isLoading = true
             registerState = RegisterState.Loading
@@ -121,17 +140,28 @@ class AuthViewModel: ViewModel() {
                 registerResponse = response
                 registerError = null
                 registerState = RegisterState.Success
-            }
-            catch (e: Exception) {
-                registerState = RegisterState.Error("Registration failed: ${e.localizedMessage}")
-                registerError = "Registration failed: ${e.localizedMessage}"
+            } catch (e: retrofit2.HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorMessage = try {
+                    JSONObject(errorBody ?: "").getString("message")
+                } catch (_: Exception) {
+                    "Registration failed"
+                }
+                registerError = errorMessage
+                registerState = RegisterState.Error(errorMessage)
                 registerResponse = null
-
-            }
-            finally {
+            } catch (_: IOException) {
+                registerError = "Network error"
+                registerState = RegisterState.Error("Network error")
+                registerResponse = null
+            } catch (_: Exception) {
+                registerError = "Unexpected error"
+                registerState = RegisterState.Error("Unexpected error")
+                registerResponse = null
+            } finally {
                 isLoading = false
             }
-
         }
     }
+
 }

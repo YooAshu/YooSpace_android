@@ -1,5 +1,6 @@
 package com.example.yoospace_android.data.repository
 
+import android.util.Log
 import com.example.yoospace_android.data.api.RetrofitInstance
 import com.example.yoospace_android.data.model.Comment
 import com.example.yoospace_android.data.model.CommentCreateRequest
@@ -7,9 +8,13 @@ import com.example.yoospace_android.data.model.Like
 import com.example.yoospace_android.data.model.Post
 import com.example.yoospace_android.data.model.Response
 import okhttp3.MultipartBody
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PostRepository {
+@Singleton
+class PostRepository @Inject constructor() {
 
+    private var feedPosts: List<Post>? = null
     suspend fun getCurrentUserPosts(): Response<List<Post>> {
         // This function will call the API to get the current user's posts
         return RetrofitInstance.api.getCurrentUserPosts()
@@ -20,9 +25,15 @@ class PostRepository {
         return RetrofitInstance.api.getCurrentUserLikedPosts()
     }
 
-    suspend fun getFeedPosts(): Response<List<Post>> {
+    suspend fun getFeedPosts(forceRefresh: Boolean = false): List<Post> {
+        Log.d("PostRepository", "Fetching feed posts Feed posts fetched: ${
+            feedPosts?.size}")
         // This function will call the API to get the feed posts
-        return RetrofitInstance.api.getFeedPosts()
+        if (feedPosts == null || forceRefresh) {
+            feedPosts = RetrofitInstance.api.getFeedPosts().data
+            Log.d("PostRepository", "Feed posts fetched: ${feedPosts?.size}")
+        }
+        return feedPosts!!
     }
     suspend fun getPostById(postId: String): Response<List<Post>> {
         return RetrofitInstance.api.getPostById(postId)

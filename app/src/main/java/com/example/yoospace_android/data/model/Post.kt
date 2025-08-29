@@ -13,7 +13,7 @@ data class Post(
     val createdAt: String,
     val creator: Creator,
     val media: List<String>,
-    val no_of_comment: Int,
+    var no_of_comment: Int,
     val no_of_like: Int,
     val isLiked: Boolean,
     val aspectRatio: PostAspectRatio?

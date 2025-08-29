@@ -6,6 +6,7 @@ import android.content.Context
 import com.example.yoospace_android.data.local.TokenManager
 import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class AppContext : Application() {
 
     init {

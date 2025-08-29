@@ -14,13 +14,17 @@ import com.example.yoospace_android.data.model.FollowDetail
 import com.example.yoospace_android.data.model.Post
 import com.example.yoospace_android.data.repository.PostRepository
 import com.example.yoospace_android.data.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import java.io.File
 import java.io.FileOutputStream
+import java.net.SocketTimeoutException
+import javax.inject.Inject
 
-class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
-    var currentUser by mutableStateOf<CurrentUser?>(null)
+@HiltViewModel
+class ProfileViewModel @Inject constructor(private val repository: UserRepository) : ViewModel() {
+    var currentUser by mutableStateOf<CurrentUser?>(value = TokenManager.getUser())
         private set
 
     //    private val repository = UserRepository()
@@ -52,19 +56,23 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
         private set
     var postsList by mutableStateOf<List<Post>?>(null)
         private set
-    var postsErrorMessage by mutableStateOf<String?>(null)
+    var postsErrorMessage by mutableStateOf<String?>("")
         private set
 
 
     fun fetchCurrentUserPosts() {
         viewModelScope.launch {
             isPostsLoading = true
+            postsErrorMessage = ""
             try {
                 val response = postRepository.getCurrentUserPosts()
                 postsList = response.data
-                postsErrorMessage = null
-            } catch (e: Exception) {
-                Log.e("ProfileViewModel", "Error fetching user posts: ${e}")
+            }
+            catch (_: SocketTimeoutException){
+                postsErrorMessage = "408"
+            }
+            catch (e: Exception) {
+                Log.e("ProfileViewModel", "Error fetching user posts: $e")
                 postsErrorMessage = "failed to get user posts : ${e.localizedMessage}"
             } finally {
                 isPostsLoading = false
@@ -76,20 +84,25 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
         private set
     var likedPostsList by mutableStateOf<List<Post>?>(null)
         private set
-    var likedPostsErrorMessage by mutableStateOf<String?>(null)
+    var likedPostsErrorMessage by mutableStateOf<String?>("")
         private set
 
     fun fetchCurrentUserLikedPosts() {
         viewModelScope.launch {
             isLikedPostsLoading = true
+            likedPostsErrorMessage = ""
             try {
                 val response = postRepository.getCurrentUserLikedPosts()
                 likedPostsList = response.data
-                likedPostsErrorMessage = null
-            } catch (e: Exception) {
+
+            }
+            catch (_: SocketTimeoutException){
+                likedPostsErrorMessage = "408"
+            }
+            catch (e: Exception) {
                 likedPostsErrorMessage = "failed to get user liked posts : ${e.localizedMessage}"
             } finally {
-                isPostsLoading = false
+                isLikedPostsLoading = false
             }
         }
     }
@@ -107,7 +120,12 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
                 val response = repository.getUserById(userId)
                 userById = response.data
                 userByIdErrorMessage = null
-            } catch (e: Exception) {
+            }
+            catch (
+                _: SocketTimeoutException){
+                userByIdErrorMessage = "408"
+            }
+            catch (e: Exception) {
                 userByIdErrorMessage = "failed to get user by id : ${e.localizedMessage}"
                 userById = null
             } finally {
@@ -120,18 +138,23 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
         private set
     var usersPostsList by mutableStateOf<List<Post>?>(null)
         private set
-    var userPostsErrorMessage by mutableStateOf<String?>(null)
+    var userPostsErrorMessage by mutableStateOf<String?>("")
         private set
 
 
     fun fetchUsersPostsById(userId: String) {
         viewModelScope.launch {
             isUsersPostsLoading = true
+            userPostsErrorMessage = ""
             try {
                 val response = postRepository.getPostsByUserId(userId)
                 usersPostsList = response.data
-                userPostsErrorMessage = null
-            } catch (e: Exception) {
+
+            }
+            catch (_: SocketTimeoutException){
+                userPostsErrorMessage = "408"
+            }
+            catch (e: Exception) {
                 userPostsErrorMessage = "failed to get user posts : ${e.localizedMessage}"
             } finally {
                 isUsersPostsLoading = false
@@ -140,9 +163,11 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
     }
 
     var errorPostLike by mutableStateOf<String?>(null)
-
+    var likingPosts by mutableStateOf(setOf<String>())
+        private set
     fun likePost(postId: String) {
         viewModelScope.launch {
+            likingPosts = likingPosts + postId
             try {
                 postRepository.likePost(postId)
                 errorPostLike = null
@@ -150,6 +175,9 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
             } catch (e: Exception) {
                 // Handle the exception, e.g., log it or show a message to the user
                 errorPostLike = "Failed to like post: ${e.localizedMessage}"
+            }
+            finally {
+                likingPosts = likingPosts - postId  // remove it once done
             }
         }
     }
@@ -223,9 +251,10 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
             try {
                 val response = repository.getUserFollowers(userId)
                 userFollowersList = response.data
-                followListErrorMessage = null
-            } catch (e: Exception) {
-                followListErrorMessage = "failed to get user followers : ${e.localizedMessage}"
+//                followListErrorMessage = null
+            }
+            catch (_: Exception) {
+//                followListErrorMessage = "failed to get user followers : ${e.localizedMessage}"
             } finally {
                 isFollowListLoading = false
             }
@@ -241,9 +270,9 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
             try {
                 val response = repository.getUserFollowing(userId)
                 userFollowingList = response.data
-                followListErrorMessage = null
-            } catch (e: Exception) {
-                followListErrorMessage = "failed to get user following : ${e.localizedMessage}"
+//                followListErrorMessage = null
+            } catch (_: Exception) {
+//                followListErrorMessage = "failed to get user following : ${e.localizedMessage}"
             } finally {
                 isFollowListLoading = false
             }
