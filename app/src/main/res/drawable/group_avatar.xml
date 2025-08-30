@@ -5,7 +5,7 @@
     android:viewportHeight="100">
     <!-- Background rectangle -->
     <path
-        android:fillColor="#7A7A7A"
+        android:fillColor="@color/avatar_bg"
         android:pathData="M0,0h100v100h-100z" />
     <path
         android:fillAlpha="0.5"

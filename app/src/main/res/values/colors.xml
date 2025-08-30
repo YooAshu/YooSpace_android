@@ -14,5 +14,6 @@
     <color name="shimmer_2">#FF8F8B8B</color>
     <color name="nav_item_bg">#FFFFFF</color>
     <color name="btn_1">#282828</color>
+    <color name="avatar_bg">#DDDDDD</color>
 
 </resources>
