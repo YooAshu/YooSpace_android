@@ -8,10 +8,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,6 +54,12 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 
 @Composable
 fun UpdateProfileScreen(
@@ -88,11 +98,11 @@ fun UpdateProfileScreen(
             }
         }
     }
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-
             if (isSelectingProfileImage) {
                 profileImageUri = uri
                 profileImageSource = ImageSource.Local(uri)
@@ -101,86 +111,87 @@ fun UpdateProfileScreen(
                 coverImageSource = ImageSource.Local(uri)
             }
             cropImage.launch(
-            CropImageContractOptions(
-                uri = uri,
-                cropImageOptions = CropImageOptions().apply {
-                    aspectRatioX = if (isSelectingProfileImage) 1 else 8
-                    aspectRatioY = if (isSelectingProfileImage) 1 else 3
-                    fixAspectRatio = true
-                    showCropOverlay = true
-                    showProgressBar = true
-                    activityBackgroundColor =
-                        android.graphics.Color.BLACK
-                }
+                CropImageContractOptions(
+                    uri = uri,
+                    cropImageOptions = CropImageOptions().apply {
+                        aspectRatioX = if (isSelectingProfileImage) 1 else 8
+                        aspectRatioY = if (isSelectingProfileImage) 1 else 3
+                        fixAspectRatio = true
+                        showCropOverlay = true
+                        showProgressBar = true
+                        activityBackgroundColor = android.graphics.Color.BLACK
+                    }
+                )
             )
-        )
-    }
+        }
     }
 
     val isUpdatingProfile = viewModel.isUpdatingProfile
     val toastMessage = viewModel.toastMessage
     val context = LocalContext.current
+
     LaunchedEffect(toastMessage) {
         toastMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            viewModel.toastMessage = null // reset so it doesn't repeat
+            viewModel.toastMessage = null
         }
     }
 
     ProtectedRoute(navController) {
-        ConstraintLayout {
-            val (cover, profile, form, updateCoverBtn) = createRefs()
-            val coverImageModel = when (coverImageSource) {
-                is ImageSource.Url -> (coverImageSource as ImageSource.Url).value
-                is ImageSource.Local -> (coverImageSource as ImageSource.Local).value
-                else -> null
-            }
-            AsyncImage(
-                model = coverImageModel,
-                contentDescription = "Cover Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(4 / 1.5f)
-                    .background(userGradient)
-                    .constrainAs(cover) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Cover Image Section with Update Button
+            Box {
+                val coverImageModel = when (coverImageSource) {
+                    is ImageSource.Url -> (coverImageSource as ImageSource.Url).value
+                    is ImageSource.Local -> (coverImageSource as ImageSource.Local).value
+                    else -> null
+                }
+
+                AsyncImage(
+                    model = coverImageModel,
+                    contentDescription = "Cover Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(4 / 1.5f)
+                        .background(userGradient),
+                    contentScale = ContentScale.Crop
+                )
+
+                // Update Cover Button positioned on top of cover image
+                Button(
+                    onClick = {
+                        isSelectingProfileImage = false
+                        photoPickerLauncher.launch("image/*")
                     },
-                contentScale = ContentScale.Crop
-            )
-            Button(
-                onClick = {
-                    isSelectingProfileImage = false
-                    photoPickerLauncher.launch(
-                        ("image/*")
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .defaultMinSize(minHeight = 30.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = LocalExtraColors.current.textPrimary
                     )
-                },
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier
-                    .defaultMinSize(minHeight = 30.dp)
-                    .constrainAs(updateCoverBtn) {
-                        top.linkTo(parent.top, margin = 5.dp)
-                        end.linkTo(parent.end, margin = 5.dp)
-                    },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = LocalExtraColors.current.textPrimary
-                )
-            ) {
-                Text(
-                    "Update Cover",
-                    modifier = Modifier.padding(horizontal = 5.dp),
-                    color = LocalExtraColors.current.textPrimary
-                )
+                ) {
+                    Text(
+                        "Update Cover",
+                        color = LocalExtraColors.current.textPrimary,
+                        fontSize = 12.sp
+                    )
+                }
             }
+
+            // Profile Image Section
             Column(
                 modifier = Modifier
-                    .constrainAs(profile) {
-                        top.linkTo(cover.bottom, margin = (-60).dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    },
+                    .fillMaxWidth()
+                    .offset(y = (-60).dp)
+                    .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 ProfileImage(
@@ -193,16 +204,16 @@ fun UpdateProfileScreen(
                             shape = RoundedCornerShape(100)
                         )
                 )
+
                 Button(
                     onClick = {
                         isSelectingProfileImage = true
-                        photoPickerLauncher.launch(
-                            ("image/*")
-                        )
+                        photoPickerLauncher.launch("image/*")
                     },
                     contentPadding = PaddingValues(0.dp),
                     modifier = Modifier
-                        .defaultMinSize(minHeight = 30.dp),
+                        .defaultMinSize(minHeight = 30.dp)
+                        .padding(top = 8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
                         contentColor = LocalExtraColors.current.textPrimary
@@ -221,37 +232,35 @@ fun UpdateProfileScreen(
                             .padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
-
             }
+
+            // Form Section
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
-                    .constrainAs(form) {
-                        top.linkTo(profile.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 20.dp)
+                    .offset(y = (-60).dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 FormInputField(
-                    modifier = Modifier.padding(10.dp),
                     label = "User Name",
                     value = formFields["userName"]!!,
                     onValueChange = { newValue ->
                         formFields["userName"] = newValue
                     },
                 )
+
                 FormInputField(
-                    modifier = Modifier.padding(10.dp),
                     label = "Full Name",
                     value = formFields["fullName"] ?: "",
                     onValueChange = {
                         formFields["fullName"] = it
                     },
                 )
+
                 FormInputField(
-                    modifier = Modifier.padding(10.dp),
                     label = "Bio",
                     value = formFields["bio"] ?: "",
                     onValueChange = {
@@ -308,24 +317,19 @@ fun UpdateProfileScreen(
                         viewModel.updateProfile(requestBodyBuilder)
                     },
                     modifier = Modifier
-                        .wrapContentWidth()
-                        .height(40.dp),
+                        .fillMaxWidth(.5f)
+                        .height(48.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = LocalExtraColors.current.textPrimary
-                    ),
-                    contentPadding = PaddingValues(0.dp),
+                    )
                 ) {
                     Text(
-                        if(isUpdatingProfile) "Updating..." else "Update", fontSize = 16.sp,
-                        modifier = Modifier.padding(horizontal = 10.dp)
+                        if(isUpdatingProfile) "Updating..." else "Update",
+                        fontSize = 16.sp
                     )
                 }
-
             }
         }
-
     }
-
 }
-

@@ -102,6 +102,21 @@ fun GroupMessageScreen(
                         .background(MaterialTheme.colorScheme.outline)
                 )
             }
+            if (viewModel.messagesLoading){
+//                show a material3 circular progress indicator
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                }
+                return@Column
+            }
 
             LazyColumn(modifier = Modifier.weight(.8f), reverseLayout = true) {
                 items(messages) { msg ->

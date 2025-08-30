@@ -14,9 +14,11 @@ import com.example.yoospace_android.data.model.FollowDetail
 import com.example.yoospace_android.data.model.Post
 import com.example.yoospace_android.data.repository.PostRepository
 import com.example.yoospace_android.data.repository.UserRepository
+import com.example.yoospace_android.ui.auth.AuthViewModel.RegisterState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.net.SocketTimeoutException
@@ -347,19 +349,18 @@ class ProfileViewModel @Inject constructor(private val repository: UserRepositor
             toastMessage = "Updating profile..."
             try {
                 val response = repository.updateProfile(update)
-
-//                TokenManager.saveUserInfo(
-//                    response.data._id,
-//                    response.data.userName,
-//                    response.data.fullName,
-//                    response.data.profile_image,
-//                    response.data.cover_image,
-//                    response.data.bio,
-//                    response.data.email,
-//                )
                 TokenManager.saveUser(response.data)
                 toastMessage = "Profile updated successfully"
-            } catch (e: Exception) {
+            }
+            catch (e: retrofit2.HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorMessage = try {
+                    JSONObject(errorBody ?: "").getString("message")
+                } catch (_: Exception) {
+                    "Update failed"
+                }
+                toastMessage = errorMessage
+            }catch (e: Exception) {
                 Log.e("ProfileViewModel", "Update failed $e")
                 toastMessage = "Failed to update profile"
             } finally {

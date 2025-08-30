@@ -10,7 +10,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -63,7 +66,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 Scaffold(
-                    modifier = Modifier.fillMaxSize().imePadding(),
+                    modifier = Modifier.fillMaxSize()
 
                 ) { innerPadding ->
                     if (isLoggedInState.value) {

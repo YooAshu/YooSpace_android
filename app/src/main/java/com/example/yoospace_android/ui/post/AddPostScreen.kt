@@ -15,16 +15,23 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -118,9 +125,9 @@ fun AddPostScreen(
             AspectRatio(3, 4, "4:3", R.drawable.aspect_ratio_3_4),
             AspectRatio(16, 9, "16:9", R.drawable.aspect_ratio_16_9)
         )
-        var limit by remember { mutableIntStateOf(3) } // overall max
+        var limit =3 // overall max
         val photoPickerLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.PickMultipleVisualMedia()
+            contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = limit)
         ) { uris ->
             if (uris.isNotEmpty()) {
                 val availableSlots = limit
@@ -278,44 +285,70 @@ fun AddPostScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .hazeSource(hazeState),
-                                pageSpacing = 8.dp, // Small gap between pages
-                                contentPadding = PaddingValues(horizontal = 32.dp) // Peek space
+                                pageSpacing = 8.dp,
+                                contentPadding = PaddingValues(horizontal = 32.dp)
                             ) { page ->
-                                AsyncImage(
-                                    model = croppedImageUris.value[page],
-                                    contentDescription = "Image $page",
-                                    modifier = Modifier
-                                        .fillMaxWidth(1f) // Each image takes ~85% of screen width
-                                        .aspectRatio(
-                                            aspectRatios[selectedAspectRatioIndex.intValue].x.toFloat() /
-                                                    aspectRatios[selectedAspectRatioIndex.intValue].y.toFloat()
-                                        )
-                                        .clip(RoundedCornerShape(5.dp))
-                                        .clickable {
-                                            cropImage.launch(
-                                                CropImageContractOptions(
-                                                    uri = imageUris.value[page],
-                                                    cropImageOptions = CropImageOptions().apply {
-                                                        aspectRatioX =
-                                                            aspectRatios[selectedAspectRatioIndex.intValue].x
-                                                        aspectRatioY =
-                                                            aspectRatios[selectedAspectRatioIndex.intValue].y
-                                                        fixAspectRatio = true
-                                                        showCropOverlay = true
-                                                        showProgressBar = true
-                                                        allowRotation = true
-                                                        activityBackgroundColor =
-                                                            android.graphics.Color.BLACK
 
-                                                    }
-                                                )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.TopEnd // place cross in top-left
+                                ) {
+                                    AsyncImage(
+                                        model = croppedImageUris.value[page],
+                                        contentDescription = "Image $page",
+                                        modifier = Modifier
+                                            .fillMaxWidth(1f)
+                                            .aspectRatio(
+                                                aspectRatios[selectedAspectRatioIndex.intValue].x.toFloat() /
+                                                        aspectRatios[selectedAspectRatioIndex.intValue].y.toFloat()
                                             )
+                                            .clip(RoundedCornerShape(5.dp))
+                                            .clickable {
+                                                cropImage.launch(
+                                                    CropImageContractOptions(
+                                                        uri = imageUris.value[page],
+                                                        cropImageOptions = CropImageOptions().apply {
+                                                            aspectRatioX = aspectRatios[selectedAspectRatioIndex.intValue].x
+                                                            aspectRatioY = aspectRatios[selectedAspectRatioIndex.intValue].y
+                                                            fixAspectRatio = true
+                                                            showCropOverlay = true
+                                                            showProgressBar = true
+                                                            allowRotation = true
+                                                            activityBackgroundColor = android.graphics.Color.BLACK
+                                                        }
+                                                    )
+                                                )
+                                                selectedImageIndex.intValue = page
+                                            },
+                                        contentScale = ContentScale.Crop
+                                    )
 
-                                            selectedImageIndex.intValue = page
+                                    // ❌ Remove button
+                                    Button(
+                                        onClick = {
+                                            val mutableImages = imageUris.value.toMutableList()
+                                            val mutableCropped = croppedImageUris.value.toMutableList()
+                                            mutableImages.removeAt(page)
+                                            mutableCropped.removeAt(page)
+                                            imageUris.value = mutableImages
+                                            croppedImageUris.value = mutableCropped
+                                            limit++ // free up a slot
                                         },
-                                    contentScale = ContentScale.Crop
-                                )
+                                        modifier = Modifier.padding(5.dp).size(20.dp),
+                                        contentPadding = PaddingValues(0.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.6f))
+
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Remove Image",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(10.dp)
+                                        )
+                                    }
+                                }
                             }
+
                             Box(
                                 Modifier
                                     .zIndex(2f)
@@ -420,19 +453,11 @@ fun AddPostScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     ),
-                    modifier = Modifier.padding(bottom = 20.dp)
+                    modifier = Modifier
+                    .padding(bottom = 30.dp)
                 )
             }
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
 
-                }
-
-            }
 
         }
 
