@@ -33,40 +33,122 @@ The YooSpace Android app comes with a variety of features powered by a **Node.js
 The app is structured with clear modules under `ui/`.  
 Below are screenshots representing each feature (you can add them in corresponding sections later).  
 
-### 🔑 Auth  
-- **Login Screen**  
-- **Register Screen**  
 
 ### 📰 Feed  
-- Main feed of posts  
-- Like, comment, and view details  
+## - Main feed of posts
+<img src="https://github.com/user-attachments/assets/93512f8c-4843-40cb-bd8e-2d0ba0ee1a1d" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/56b0a43a-353a-407a-ab95-1f0d6d2baf9f" alt="Screenshot 1" style="width: 200px; height: auto;">
 
-### 👤 Profile  
-- View and edit profile  
-- Followers & Following list  
-- User posts & liked posts  
+## - Like, comment, and view details
+<img src="https://github.com/user-attachments/assets/9a3b7ac0-15d0-4ebb-b3cc-63469acf5edc" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/48109784-1a30-4b7e-b4ef-840c25014f39" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/3f12472c-043c-4471-acf1-8be345b99006" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/4d9d3fe5-6ed0-4cd4-baf5-f3f296802241" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/0b947e7f-b148-4626-b527-9bf9619dc405" alt="Screenshot 1" style="width: 200px; height: auto;">
 
-### ✍️ Post  
-- Upload a new post  
-- Add captions, tags, media  
-- Like & comment on posts  
+## - Carousel
+
+<img src="https://github.com/user-attachments/assets/0f70a8f3-9b95-4308-9102-246355c9733a" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
 
 ### 💬 Message  
-- 1:1 chat with friends  
-- Group chat support  
+<img src="https://github.com/user-attachments/assets/c8b6b63a-8159-4b31-86d5-39d7ab536896" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/abf77bf6-d1c1-49cb-b8f7-9c9363dd48dc" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+## - 1:1 chat with friends
+<img src="https://github.com/user-attachments/assets/13b495a9-89e8-4314-a954-9d5869381851" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/0d2b2de0-2e19-4a59-aad0-4c6ec2a5735a" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+- Group chat support
+<img src="https://github.com/user-attachments/assets/3fca7cff-8759-4314-b610-9f37e01c1fe2" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+- Check group invites
+<img src="https://github.com/user-attachments/assets/a1c99e99-b1f3-4a02-a353-ea1fd1c8cd3b" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+- Create Group and add your followers
+<img src="https://github.com/user-attachments/assets/f1081a11-469a-4f92-8c2d-e111eb04d469" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+- Group details
+<img src="https://github.com/user-attachments/assets/0c067d6b-c92f-497f-9eb6-5bc741f55826" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/eeb2bc61-bb4a-4a08-8d03-0d1c30aeb63a" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
+
+### 🔑 Auth  
+- **Login Screen**  
+<img src="https://github.com/user-attachments/assets/8ba61ac7-4ae9-4262-b924-e48d90ad761a" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/11088aac-ea23-4913-8958-ae7666e495d8" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+- **Register Screen**
+<img src="https://github.com/user-attachments/assets/211093df-8652-4c9f-ba16-7c6aaab77328" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/fe053af9-1421-435f-9915-ff2b46fabc6a" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
+
+### 👤 Profile  
+- View profile (see your posts and your liked posts)
+<img src="https://github.com/user-attachments/assets/faf9b688-16ac-4024-8c15-269cccccd7db" alt="Screenshot 1" style="width: 200px; height: auto;">  
+<img src="https://github.com/user-attachments/assets/afcf42ea-bd37-47de-99ee-5cf29afacf44" alt="Screenshot 1" style="width: 200px; height: auto;">  
+<img src="https://github.com/user-attachments/assets/bee92289-0ad5-45a8-b0ed-64715c2e4d10" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
+
+### 👤 Update Profile 
+
+<img src="https://github.com/user-attachments/assets/34aab82f-2c5a-4e4c-8b31-44f0d2728e37" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/6b2dccab-a924-4847-9133-1c65a41120dd" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
+
+## - Followers & Following list
+<img src="https://github.com/user-attachments/assets/8efdabec-8ed5-4c75-b873-668d813ba4b9" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/30bc7a67-b6c2-4d7a-b83a-ebdc28b3b4f9" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/2d860334-1810-4313-9e42-5ed911495518" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/e0b60a52-7c0e-4245-b885-4df2badc7df7" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
+
+## - User Profile
+<img src="https://github.com/user-attachments/assets/726aa586-3520-45d4-a28e-d6749012e8e2" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/48fe7da3-1a47-41e0-9482-2efc996a6567" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
+
+### ✍️ Post 
+- Upload a new post choose aspect ratio & crop image
+- Add captions, media  
+<img src="https://github.com/user-attachments/assets/7ad35aab-8860-4f65-9907-ebd9a69b81b1" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/7334cd7d-d68b-4dd8-9c67-e7ac4b81cc69" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/03bfd2a7-c249-433f-8675-06d867e307be" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/253a125d-11c4-496d-9c8b-d0054c739d94" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
 
 ### 👥 Discover People  
-- Explore & follow new users  
+- Explore & follow new users
+  
+<img src="https://github.com/user-attachments/assets/210e0234-9391-43c0-98c3-b6518e52acbe" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/f3f1d12f-0041-4ffe-9682-772bcf3d3e76" alt="Screenshot 1" style="width: 200px; height: auto;">
+
+---
 
 ### 🔔 Notifications  
-- Real-time updates for likes, comments, follows  
+- Real-time updates for likes, comments, follows and group invites
 
-### 🎨 Common & Theme  
-- Custom UI components & styles  
-- Consistent app-wide design system  
+<img src="https://github.com/user-attachments/assets/10f5aff0-540b-4ab5-bc81-fbc74a5a386e" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/907c9f76-48dd-412f-9e98-b48c2c780229" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/3f5772c3-aebb-4cc4-9f9b-f8d09e9e201e" alt="Screenshot 1" style="width: 200px; height: auto;">
 
-### ✨ Shimmer Components  
-- Beautiful shimmer loading states for smooth UX  
+---
+
+### ✨ Splash Screen & Shimmer Components  
+- Beautiful shimmer loading states for smooth UX
+<img src="https://github.com/user-attachments/assets/52acd8f1-718a-4352-a6f9-b8c5d416f9d4" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/762e7287-815f-47d8-884d-d7c9d8eb441d" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/bc932a5e-a8ce-457a-92d2-47f1343dde9e" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/81aa1cc3-bcc3-4d31-9a80-e1562fb38c82" alt="Screenshot 1" style="width: 200px; height: auto;">
+<img src="https://github.com/user-attachments/assets/a8d3e34e-f8e5-4ecc-9de2-b3ad6b132f88" alt="Screenshot 1" style="width: 200px; height: auto;">
 
 ---
 
