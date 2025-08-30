@@ -237,6 +237,7 @@ fun AllChatScreen(
                                         isSeen = isLastMessageSeen,
                                         unseenCount = convo.unseenCount,
                                         isGroup = false,
+                                        lastMessageTime = convo.lastMessage?.createdAt,
                                         onClick = {
                                             val user = ConversationUserParcel(
                                                 _id = participant._id,
@@ -259,6 +260,7 @@ fun AllChatScreen(
                                     isSeen = isLastMessageSeen,
                                     unseenCount = convo.unseenCount,
                                     isGroup = true,
+                                    lastMessageTime = convo.lastMessage?.createdAt,
                                     onClick = {
                                         val groupDetails = GroupDetailsParcel(
                                             _id = convo._id,

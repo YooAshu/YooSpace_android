@@ -32,3 +32,44 @@ fun formatPostDate(createdAt: String): String {
         createdAt // fallback
     }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatMessageDate(createdAt: String): String {
+    return try {
+        // Parse MongoDB date (UTC) and convert to system timezone
+        val instant = Instant.parse(createdAt)
+        val messageTime = instant.atZone(ZoneId.systemDefault())
+        val now = ZonedDateTime.now(ZoneId.systemDefault())
+
+        val minutesAgo = ChronoUnit.MINUTES.between(messageTime, now)
+        val hoursAgo = ChronoUnit.HOURS.between(messageTime, now)
+        val daysAgo = ChronoUnit.DAYS.between(messageTime, now)
+        val monthsAgo = ChronoUnit.MONTHS.between(messageTime, now)
+        val yearsAgo = ChronoUnit.YEARS.between(messageTime, now)
+
+        when {
+            minutesAgo < 1 -> "Just now"
+            minutesAgo < 60 -> "${minutesAgo}m"
+            hoursAgo < 24 -> {
+                // Check if it's today
+                if (messageTime.toLocalDate() == now.toLocalDate()) {
+                    messageTime.format(DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH))
+                } else {
+                    "${hoursAgo}h"
+                }
+            }
+            daysAgo == 1L -> "1d"
+            daysAgo < 30 -> "${daysAgo}d"
+            monthsAgo < 12 -> {
+                val months = monthsAgo.toInt()
+                if (months == 1) "1 month ago" else "$months m"
+            }
+            else -> {
+                val years = yearsAgo.toInt()
+                if (years == 1) "1 year ago" else "$years y"
+            }
+        }
+    } catch (_: Exception) {
+        createdAt // fallback
+    }
+}
