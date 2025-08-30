@@ -8,6 +8,8 @@
 Inspired by Instagram & Twitter — designed to connect users, share posts, chat, and create groups.*  
 
 ---
+Download the APK file from [https://github.com/YooAshu/YooSpace_android/releases/download/alpha/yoo.space.apk](https://github.com/YooAshu/YooSpace_android/releases/download/alpha/yoo.space.apk).
+---
 
 ## ✨ Features  
 
@@ -155,7 +157,7 @@ Below are screenshots representing each feature (you can add them in correspondi
 ## Installation
 
 To install Yoo Notes, follow these steps:
-1. Download the APK file from []().
+1. Download the APK file from [https://github.com/YooAshu/YooSpace_android/releases/download/alpha/yoo.space.apk](https://github.com/YooAshu/YooSpace_android/releases/download/alpha/yoo.space.apk).
 2. Open the APK file on your Android device.
 3. Follow the on-screen instructions to install the app.
 
