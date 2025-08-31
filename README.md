@@ -11,6 +11,10 @@ Inspired by Instagram & Twitter — designed to connect users, share posts, chat
 Download the APK file from [https://github.com/YooAshu/YooSpace_android/releases/download/alpha/yoo.space.apk](https://github.com/YooAshu/YooSpace_android/releases/download/alpha/yoo.space.apk).
 ---
 
+<img width="2549" height="1428" alt="image" src="https://github.com/user-attachments/assets/04f67cf6-d349-4833-8a37-bf10874104f7" />
+
+---
+
 ## ✨ Features  
 
 The YooSpace Android app comes with a variety of features powered by a **Node.js + MongoDB backend** and modern **Android tools**:  
